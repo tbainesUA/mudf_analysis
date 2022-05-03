@@ -1,7 +1,8 @@
-# wisp_analysis
+# mudf_analysis
 
-The WISP emission line detection and verification code for slitless 
-grism spectra. 
+This repository was forked from the ahenry_mzr branch of the wisp_analysis repository. The code has been modified to simultaneously fit VLT MUSE and HST WFC3 spectroscopy of the MUSE Ultra Deep Field (MUDF). The below documentation pertains to the original wisp_analysis code and is still largely applicable to this repository.
+
+The WISP emission line detection and verification code for slitless grism spectra. 
 
 This package detects emission line candidates in WISP 
 spectra using a peak finder that performs a continuous wavelet transform
