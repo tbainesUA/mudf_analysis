@@ -29,7 +29,8 @@ class WISPLFDatabaseManager:
                         's31',
                         's32',
                         'he1',
-                        'c']
+                        'lya',
+                        'c'] # M.D.R 01/06/2021
 
     tableNames = ['catalogue',
                   'annotations',
@@ -88,6 +89,10 @@ class WISPLFDatabaseManager:
         'he1_10830_err',
         'he1_10830_EW_obs',
         'he1_10830_contam',
+        'lya_1216_flux', # M.D.R 01/06/2021
+        'lya_1216_err', # M.D.R 01/06/2021
+        'lya_1216_EW_obs', # M.D.R 01/06/2021
+        'lya_1216_contam', # M.D.R 01/06/2021
     ]
 
     fitResultKeys = ['redshift',
@@ -123,7 +128,10 @@ class WISPLFDatabaseManager:
                      'siii_9532_ew_obs',
                      'he1_flux',
                      'he1_error',
-                     'he1_ew_obs']
+                     'he1_ew_obs',
+                     'lya_flux', # M.D.R 01/06/2021
+                     'lya_error', # M.D.R 01/06/2021
+                     'lya_ew_obs'] # M.D.R 01/06/2021
 
     def __init__(self, dbFileNamePrefix):
         #        print('Using sqlite3 version {}'.format(sqlite3.version))
@@ -188,10 +196,13 @@ class WISPLFDatabaseManager:
                               he1_flux real,
                               he1_error real,
                               he1_ew_obs real,
+                              lya_flux real,
+                              lya_error real,
+                              lya_ew_obs real,
                               ContamFlag int,
                               EntryTime text
                               )''')
-        self.dbConnection.commit()
+        self.dbConnection.commit() # M.D.R 01/06/2021 - added lya above
 #        print('Done.' if self.dbCursor.rowcount >
 #              0 else 'Table was already present.')
 
@@ -300,6 +311,9 @@ class WISPLFDatabaseManager:
                 fitResults['he1_flux'],
                 fitResults['he1_error'],
                 fitResults['he1_ew_obs'],
+                fitResults['lya_flux'], # M.D.R 01/06/2021
+                fitResults['lya_error'], # M.D.R 01/06/2021
+                fitResults['lya_ew_obs'], # M.D.R 01/06/2021
                 flagContent,
                 str(datetime.datetime.now().isoformat())
                 )
