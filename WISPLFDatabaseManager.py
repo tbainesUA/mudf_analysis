@@ -48,6 +48,7 @@ class WISPLFDatabaseManager:
         'B_IMAGE',
         'redshift',
         'redshift_err',
+        'SNR_confirm', # M.D.R 2022/05/04
         'dz_oiii',
         'dz_oii',
         'dz_siii_he1',
@@ -164,6 +165,7 @@ class WISPLFDatabaseManager:
                               B_IMAGE real,
                               redshift real,
                               redshift_err real,
+                              snr_tot_others real,
                               dz_oiii real,
                               dz_oii real,
                               dz_siii_he1 real,
