@@ -32,7 +32,7 @@ import shutil
 from glob import glob
 import tarfile
 import distutils
-#import numpy as np
+import numpy as np # MDR 2022/05/17
 import fileinput
 import scipy
 import pylab as plt
@@ -43,14 +43,19 @@ import sys
 from matplotlib import gridspec
 import matplotlib.transforms as mtransforms
 import matplotlib.patheffects as PathEffects
-# Explicitly import readline to make the text entry process less tortuous
-# on OSX
+# Explicitly import readline to make the text entry process easier on OSX
 import readline
 # SQLLite database support for data persistence
 from WISPLFDatabaseManager import WISPLFDatabaseManager as WDBM
 
 from wisp_analysis import *
 
+verbose = True # MDR 2022/05/17
+
+if (verbose == True):
+    print('\nCompiling measure_z_interactive...\n') # MDR 2022/05/17
+    print('The current working director is...\n') # MDR 2022/05/17
+    print(os.getcwd()) # MDR 2022/05/17
 
 #######################################################################
 # define wavelengths of lines of interest
@@ -107,6 +112,7 @@ def isFloat(string):
 
 
 def getzeroorders(zeroorderpath, g='G141', magcut=23.5):  # MB: changed from 23.0
+    if (verbose == True): print('Running getzeroorders...\n') # MDR 2022/05/17
     """
     Changing to return a table
     """
@@ -134,6 +140,7 @@ def getzeroorders(zeroorderpath, g='G141', magcut=23.5):  # MB: changed from 23.
 
 
 def getfirstorders(firstorderpath):
+    if (verbose == True): print('Running getfirstorders...\n') # MDR 2022/05/17
     """
     Changing to return a table
     """
@@ -158,6 +165,7 @@ def getfirstorders(firstorderpath):
 
 
 def get_remaining_objects(full_obj_list, objid_done):
+    if (verbose == True): print('Running get_remaining_objects...') # MDR 2022/05/17
     # array of flags
     wdone = np.in1d(np.array(full_obj_list), objid_done)
     remaining = np.copy(full_obj_list)
@@ -177,7 +185,7 @@ def print_help_message():
         "\tac = accept object fit, noting contamination\n"  \
         "\tr = reject object\n" \
         "\tc = add comment\n" \
-        "\tuser = toggle between previously saved fits" \
+        "\tuser = toggle between previously saved fits\n" \
         "\tcontam = specify contamination to line flux and/or continuum\n" \
         "\treset = reset interactive options back to default for this object\n" \
         "\ts = print the (in progress) object summary\n\n"
@@ -209,6 +217,7 @@ def print_help_message():
 
 
 def check_masked_lines(fitresults, snr_meas_array, spdata):
+    if (verbose == True): print('Running check_masked_lines...\n') # MDR 2022/05/17
     """ """
 #    fluxstrs = ['oii','hg','hb','oiii','hanii','sii','siii_9069','siii_9532','he1']  # M.D.R 01/06/2021
     fluxstrs = ['lya','oii','hg','hb','oiii','hanii','sii','siii_9069','siii_9532','he1']  # M.D.R 01/06/2021
@@ -230,6 +239,7 @@ def check_masked_lines(fitresults, snr_meas_array, spdata):
 
 
 def comment_out_obj(par, obj, catalogname):
+    if (verbose == True): print('Running comment_out_obj...\n') # MDR 2022/05/17
     # if a row already exists for this object, comment it out
     objstr = '{:<8d}'.format(par) + '{:<6d}'.format(obj)
     if os.path.exists(catalogname):
@@ -240,10 +250,12 @@ def comment_out_obj(par, obj, catalogname):
                 print '%s' % line,
 
 def print_prompt(prompt, prompt_type='obj'):
+    #if (verbose == True): print('Running print_prompt...\n') # MDR 2022/05/17
     print(setcolors[prompt_type] + prompt + setcolors['endc'])
 
 
 def write_object_summary(par, obj, fitresults, snr_meas_array, contamflags, summary_type='accept'):
+    if (verbose == True): print('Running write_object_summary...\n') # MDR 2022/05/17
     """ """
     # string names for output
 #    linenames = np.array(['[OII]', 'Hgamma', 'Hbeta', '[OIII]', \  # M.D.R 01/06/2021
@@ -253,7 +265,6 @@ def write_object_summary(par, obj, fitresults, snr_meas_array, contamflags, summ
     # string names for accessing fitresults
 #    fluxstrs = ['oii','hg','hb','oiii','hanii','sii','siii_9069','siii_9532','he1']  # M.D.R 01/06/2021
     fluxstrs = ['lya','oii','hg','hb','oiii','hanii','sii','siii_9069','siii_9532','he1']  # M.D.R 01/06/2021
-
     linefluxes = np.array([fitresults['%s_flux'%fs] for fs in fluxstrs])
 
     # initial message
@@ -274,14 +285,16 @@ def write_object_summary(par, obj, fitresults, snr_meas_array, contamflags, summ
 
 
 def make_tarfile(outdir):
+    if (verbose == True): print('Running make_tarfile...\n') # MDR 2022/05/17
     """ """
     # copy defauly.config into output directory to keep a copy
-    shutil.copy('default.config', outdir)  # M.D.R 01/27/2021
+    shutil.copy('default.config', outdir)
     with tarfile.open('%s.tar.gz'%outdir, 'w:gz') as tar:
         tar.add(outdir, arcname=os.path.basename(outdir))
 
 
 def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_others, full_fitmodel, full_contmodel, current_lam, lamlines_found, index_of_strongest_line, contmodel, plottitle,outdir, zset=None):
+    if (verbose == True): print('\nRunning plot_object...\n') # MDR 2022/05/17
     """
     # save the figure for everything, junk objects and all
     # previous figures are overwritten
@@ -315,7 +328,6 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     #print('xmin/max, ymin/max =', xmin, xmax, ymin, ymax) # M.D.R 01/27/2021
 
     ax1.plot(spec_lam, spec_val, 'k', spec_lam, spec_con, 'hotpink', ls='steps')
-
     ax1.axvline(x=config_pars['transition_wave'], c='c', linestyle=':', lw=3)
 
     # transforms for plotting in data and axes coordinates
@@ -420,7 +432,7 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     ax1.plot(current_lam, current_cont, 'ro', ms=10)
 
     ax1.set_ylabel(
-        r'F$_\lambda$ ergs s$^{-1}$ cm$^{-2}$ $\AA^{-1}$', size='xx-large')
+        r'F$_\lambda$ erg s$^{-1}$ cm$^{-2}$ $\AA^{-1}$', size='xx-large')
     ax1.set_xlim([xmin, xmax])
     ax1.set_ylim([ymin, ymax])
     ax1.set_title(plottitle)
@@ -445,20 +457,19 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     # fig = plt.gcf() a
 
     # - M.D.R. - 10/22/2020
-    import numpy
+    #import numpy
     # find max S/N in list of detected lines.
     # pull index location, determine lambda of that line.
     # set ymin/max based on centroid +/-i range based on dispersion.
     #print('snr_meas_array =', snr_meas_array)  # M.D.R 01/27/2021
-    #print(numpy.max(snr_meas_array)) # M.D.R 01/27/2021
-    #print(numpy.argmax(snr_meas_array)) # M.D.R 01/27/2021
-    #lamobs_maxsnr = lamobs[numpy.argmax(snr_meas_array)]
-    lamobs_blue = lamobs[numpy.argwhere(lamobs < config_pars['mask_region1'][0])]
-    lamobs_red = lamobs[numpy.argwhere(lamobs > config_pars['mask_region1'][1])]
+    #print(np.max(snr_meas_array)) # M.D.R 01/27/2021
+    #print(np.argmax(snr_meas_array)) # M.D.R 01/27/2021
+    lamobs_maxsnr = lamobs[np.argmax(snr_meas_array)]
+    lamobs_blue = lamobs[np.argwhere(lamobs < config_pars['mask_region1'][0])]
+    lamobs_red = lamobs[np.argwhere(lamobs > config_pars['mask_region1'][1])]
     #print('lamobs_blue, lamobs_red =', lamobs_blue, lamobs_red) # M.D.R 01/27/2021
-
-    snr_meas_array_blue = snr_meas_array[numpy.argwhere(lamobs < config_pars['mask_region1'][0])]
-    snr_meas_array_red = snr_meas_array[numpy.argwhere(lamobs > config_pars['mask_region1'][1])] #changed to 1.
+    snr_meas_array_blue = snr_meas_array[np.argwhere(lamobs < config_pars['mask_region1'][0])]
+    snr_meas_array_red = snr_meas_array[np.argwhere(lamobs > config_pars['mask_region1'][1])] #changed to 1.
     #print('snr_meas_array_blue, snr_meas_array_red =', snr_meas_array_blue, snr_meas_array_red) # M.D.R 01/27/2021
 
     #print('\ntest if arrays are empty\n')
@@ -468,7 +479,7 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
         lamobs_maxsnr_blue_peak = 0.0
     elif len(lamobs_blue) > 0:
         #print('blue list exists')
-        lamobs_maxsnr_blue = lamobs_blue[numpy.argmax(snr_meas_array_blue)]
+        lamobs_maxsnr_blue = lamobs_blue[np.argmax(snr_meas_array_blue)]
         lamobs_maxsnr_blue_peak = min(enumerate(spec_lam), key = lambda x: abs(lamobs_maxsnr_blue - x[1]))[0]
 
     if len(lamobs_red) == 0:
@@ -477,7 +488,7 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
         lamobs_maxsnr_red_peak = 0.0
     elif len(lamobs_red) > 0:
         #print('red list exists')
-        lamobs_maxsnr_red = lamobs_red[numpy.argmax(snr_meas_array_red)]
+        lamobs_maxsnr_red = lamobs_red[np.argmax(snr_meas_array_red)]
         lamobs_maxsnr_red_peak = min(enumerate(spec_lam), key = lambda x: abs(lamobs_maxsnr_red - x[1]))[0]
 
     #print('lamobs_maxsnr_blue, lamobs_maxsnr_red =', lamobs_maxsnr_blue, lamobs_maxsnr_red)
@@ -491,7 +502,7 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     if lamobs_maxsnr_blue !=0.0 and lamobs_maxsnr_blue > config_pars['lambda_min']: # M.D.R 01/13/2021
         #print('YES BLUE')
         ax3.set_xlim([lamobs_maxsnr_blue-60., lamobs_maxsnr_blue+60.])
-        ax3.set_ylim([-1.0e-19, 1.2*numpy.max(spec_val[lamobs_maxsnr_blue_peak-60:lamobs_maxsnr_blue_peak+60])])
+        ax3.set_ylim([-1.0e-19, 1.2*np.max(spec_val[lamobs_maxsnr_blue_peak-60:lamobs_maxsnr_blue_peak+60])])
     elif lamobs_maxsnr_blue == 0.0 or lamobs_maxsnr_blue < config_pars['lambda_min']: # M.D.R 01/13/2021
         #print('NO BLUE')
         ax3.set_xlim(0, 1)
@@ -501,7 +512,7 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     #    print('Strongest line in RED.')
     if lamobs_maxsnr_red !=0.0:
         ax4.set_xlim([lamobs_maxsnr_red-400., lamobs_maxsnr_red+400.])
-        ax4.set_ylim([-0.5e-19, 1.2*numpy.max(spec_val[lamobs_maxsnr_red_peak-5:lamobs_maxsnr_red_peak+5])])
+        ax4.set_ylim([-0.5e-19, 1.2*np.max(spec_val[lamobs_maxsnr_red_peak-5:lamobs_maxsnr_red_peak+5])])
     elif lamobs_maxsnr_red == 0.0: # M.D.R 01/06/2021
         ax4.set_xlim(0, 1)
         ax4.set_ylim(0, 1.0e-20)
@@ -514,29 +525,38 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     # - M.D.R. - 10/22/2020
 
     if zset is None:
-        addtext = 'In progress, z={:.3f}'.format(zfit) + ',  ' + 'confirming SNR = {:.3f}'.format(snr_tot_others)
+        addtext = 'In progress (z = {:.4f}'.format(zfit) +  ', ' + 'wSNR = {:.2f})'.format(snr_tot_others)
         addtextcolor = 'orange'
     elif zset == 0:
         addtext = 'Rejected'
         addtextcolor = 'red'
     elif zset == 1:
-        addtext = 'Accepted, z={:.3f}'.format(zfit) +  ',  ' + 'confirming SNR = {:.3f}'.format(snr_tot_others)
+        addtext = 'Accepted (z = {:.4f}'.format(zfit) +  ', ' + 'wSNR = {:.2f})'.format(snr_tot_others)
         addtextcolor = 'green'
 
     fig.text(0.3, 0.93, addtext, ha='right', va='bottom', color=addtextcolor,
              fontsize=18, fontweight=500,
              path_effects=[PathEffects.withStroke(linewidth=0.5,foreground="k")])
+
+    plt.tight_layout() # MDR 2022/05/19 - Added to fill screen when fitting.
     fig.savefig(plotfilename)
     plt.draw()
 
+    #if (verbose == True): print('Exiting plot_object...\n') # MDR 2022/05/17
 
-def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zeros, g141zeros, linelistoutfile, commentsfile, remaining, allobjects, show_dispersed=True):
+
+def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zeros, g141zeros, linelistoutfile, commentsfile, remaining, allobjects, show_dispersed=True, stored_fits = False, path_to_wisp_data = ' '):
+    if (verbose == True): print('Running inspect_object...\n') # MDR 2022/05/17
     """An attempt to move all object-specific tasks
     """
     # set up and filenames
     outdir = 'Par%s_output_%s'%(par,user)
-    specnameg102 = 'MU1_%i_G102.1D.dat' % (obj) # specnameg102 = 'Par%i_G102_BEAM_%iA.dat' % (par, obj) - M.D.R. - 10/08/2020 ... From e.g. Par406_G141_BEAM_422A.dat
-    specnameg141 = 'MU1_%i_G141.1D.dat' % (obj) # specnameg141 = 'Par%i_G141_BEAM_%iA.dat' % (par, obj) - M.D.R. - 10/08/2020 ... To e.g. MU1_295_G141.1D.dat
+    if path_to_wisp_data ==  ' ':
+        specnameg102 = 'MU1_%i_G102.1D.dat' % (obj) # specnameg102 = 'Par%i_G102_BEAM_%iA.dat' % (par, obj) - M.D.R. - 10/08/2020 ... From e.g. Par406_G141_BEAM_422A.dat
+        specnameg141 = 'MU1_%i_G141.1D.dat' % (obj) # specnameg141 = 'Par%i_G141_BEAM_%iA.dat' % (par, obj) - M.D.R. - 10/08/2020 ... To e.g. MU1_295_G141.1D.dat
+    else :
+        specnameg102 = path_to_wisp_data + '/Par' + str(par) + '/Spectra/MU1_%i_G102.1D.dat' % (obj)
+        specnameg141 = path_to_wisp_data + '/Par' + str(par) + '/Spectra/MU1_%i_G141.1D.dat' % (obj)
     plottitle = 'Par%i_%i' % (par, obj) # plottitle = 'Par%i_BEAM_%i' % (par, obj) - M.D.R. - 10/08/2020
     fitdatafilename = os.path.join(outdir, 'fitdata/%s_fitspec' % plottitle)
     # read in 1D spectrum
@@ -560,13 +580,13 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
     # display the object
     if g102zeros is not None:
         #show2dNEW('G102', par, obj, g102firsts, g102zeros, 'linear')
-        show2dNEW('G102', par, obj, g102zeros, user, 'linear')
+        show2dNEW('G102', par, obj, g102zeros, user, 'linear', path_to_wisp_data = path_to_wisp_data)
     if g141zeros is not None:
-        show2dNEW('G141', par, obj, g141zeros, user, 'linear')
+        show2dNEW('G141', par, obj, g141zeros, user, 'linear', path_to_wisp_data = path_to_wisp_data)
     # pan full images to the new object
-    showDirectNEW(obj)
+    showDirectNEW(obj, par, path_to_wisp_data = path_to_wisp_data)
     if show_dispersed:
-        showDispersed(obj)
+        showDispersed(obj, par, path_to_wisp_data = path_to_wisp_data)
 
     # define parameters for this object
     ra = objinfo['ra']
@@ -587,15 +607,44 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
 #    databaseManager = WDBM(dbFileNamePrefix='Par{}'.format(par))
     databaseManager = WDBM(dbFileNamePrefix=os.path.join(outdir,'Par{}'.format(par))) # databaseManager = WDBM(dbFileNamePrefix=os.path.join(outdir,'Par{}'.format(par))) - M.D.R. - 10/08/2020
     mostRecentObjectData = databaseManager.getMostRecentObject()
-#    if mostRecentObjectData is not None :
-#        print('Most recent object in database: Par {}, Obj {}, Date {}'.format(*mostRecentObjectData))
-#    else :
-#        print('Database is empty.')
+    # if mostRecentObjectData is not None:
+    #     print('Most recent object in database: Par {}, Obj {}, Date {}'.format(*mostRecentObjectData))
+    # else:
+    #     print('Database is empty.')
     catalogueEntryData = databaseManager.loadCatalogueEntry(parNumber=par, objectId=obj)
+
+    ### # MDR 2022/05/17
+    # ATTEMPT TO GET REIFT WORKING AGAIN.
+    print('\nSearching for previous fits to object {}...\n'.format(str(obj)))
+    #print('file = ', outdir + '/done_%s'%user)
+
+    if os.path.exists(outdir + '/done_%s'%user): # needed for the first run before file exists
+        with open(outdir + '/done_%s'%user) as f:
+            for index, line in enumerate(f):
+                #print("Line {}: {}".format(index, line.strip()))
+                if (int(line.strip()) == obj):
+                    catalogueEntryData = 1
+                    print('Match found...\n')
+                    break
+
+        if (catalogueEntryData != 1):
+            print('No match found...\n')
+
+    print('Done searching for previous fits...\n')
+    ### # MDR 2022/05/17
+
     rejectPrevFit = True
-    if catalogueEntryData is not None :
-        nonFitResults, fitResults = catalogueEntryData
-        (par_db, obj_db, ra_db, dec_db, jmag_db, hmag_db, a_image_db, b_image_db, contamflag_db, entrytime_db) = nonFitResults
+
+    # if (verbose == True):
+    #     print('databaseManager = ', databaseManager) # MDR 2022/05/17
+    #     print('mostRecentObjectData = ', mostRecentObjectData) # MDR 2022/05/17
+    #     print('catalogueEntryData = ', catalogueEntryData) # MDR 2022/05/17
+    #     print('rejectPrevFit = ', rejectPrevFit) # MDR 2022/05/17
+
+    # if catalogueEntryData is not None :
+    if catalogueEntryData == 1:
+        #nonFitResults, fitResults = catalogueEntryData
+        #(par_db, obj_db, ra_db, dec_db, jmag_db, hmag_db, a_image_db, b_image_db, contamflag_db, entrytime_db) = nonFitResults
 #        print('Found previous fit results for Pointing {}, Object {}.\nEnter "y" to accept the earlier fit.'.format(par_db, obj_db))
         print('You have already fit Obj {}. Refit? [y/N]').format(obj)
         rejectPrevFit = raw_input('> ').strip().lower() == 'y'
@@ -619,6 +668,26 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
     # fwhm is defined for the red side, regardless of where line is
     fwhm_guess = 2.35 * a_image * config_pars['dispersion_red']
 
+
+    if stored_fits != False:
+        first_stored_fit = stored_fits[0]
+        users = [path.split('/')[-3].split('_')[-1] for path in stored_fits]
+        fileObject = open(first_stored_fit,'r')
+        alldata = pickle.load(fileObject)
+        config_pars = alldata[10]
+        fitresults_old = alldata[8]
+        zguess = fitresults_old['redshift']
+        fwhm_guess = fitresults_old['fwhm_g141']
+        print 'using stored fit from: '  + users[0]
+        print 'available stored fits: '
+        print users
+        ### also need to figure out what else to add?
+            ### config pars for nodes can also be entered here.
+
+
+
+### replace this with printouts from pickle files
+
     # print object info to screen
     if rejectPrevFit:
         print(' ')
@@ -627,7 +696,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         print_prompt("Initial redshift guess: z = %f" % (zguess))
         print_prompt("\nWhat would you like to do with this object?\nSee the README for options, or type 'h' to print them all to the screen.")
 
-    comment = ' '
+    comment = ''
 #    contamflags = {'o2':0, 'hg':0, 'hb':0, 'o3':0, 'ha':0, 's2':0, 's31':0, \
                    #'s32':0, 'he1':0} # M.D.R 01/06/2021
     contamflags = {'lya':0, 'o2':0, 'hg':0, 'hb':0, 'o3':0, 'ha':0, 's2':0, \
@@ -655,6 +724,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         fit_inputs = [np.ma.compressed(masked_spec_lam), np.ma.compressed(spec_val), np.ma.compressed(spec_unc), config_pars, zguess, fwhm_guess, str(obj)]
         # parsing the input to facilitate parallel processing when fitting
         # is done in batch mode.
+
         fitresults = fit_obj(fit_inputs)
         zfit = fitresults['redshift']
         fitpars = fitresults['fit_parameters']
@@ -699,12 +769,13 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                                    fitresults['he1_error']])
 
         #### calculate the significance of the other lines that are not  oiii.
-        # M.D.R - 2022/05/03
-        signal_lines = np.array([fitresults['lya_flux'], fitresults['oii_flux'], fitresults['hg_flux'], fitresults['hb_flux'], fitresults['hanii_flux'], fitresults['sii_flux']])
-        err_lines = np.array([fitresults['lya_error'], fitresults['oii_error'], fitresults['hg_error'], fitresults['hb_error'], fitresults['hanii_error'], fitresults['sii_error']])
+        signal_lines = np.array([fitresults['oii_flux'], fitresults['hg_flux'], fitresults['hb_flux'], fitresults['hanii_flux'], fitresults['sii_flux']])
+        err_lines = np.array([fitresults['oii_error'], fitresults['hg_error'], fitresults['hb_error'], fitresults['hanii_error'], fitresults['sii_error']])
+
         w=np.where(signal_lines > 0)
-        snr_tot_others = np.sum(signal_lines[w]) / np.sqrt(np.sum(err_lines[w]**2.0))
-        # M.D.R - 2022/05/03
+        snr_tot_others = np.sum(signal_lines[w]) / np.sqrt(np.sum(err_lines[w]**2))
+
+
 
         # plot the whole goddamn thing
         plot_object(zguess, fitresults['redshift'],
@@ -721,12 +792,12 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
 
         # reject object
         if option.strip().lower() == 'r':
-            zset = 0 # M.D.R - 2022/05/03
-            if len(comment) > 0:
+           zset = 0
+           if len(comment) > 0:
                comment = 'rejected'  + ', ' + comment
            else :
                 comment = 'rejected'
-           done = 1 # M.D.R - 2022/05/03
+           done = 1
 
         # accept object
         elif option.strip().lower() == 'a':
@@ -784,6 +855,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                 print_prompt('Invalid entry. Enter wavelengths separated by commas')
             else:
                 config_pars['mask_region1'] = maskwave
+
         elif option.strip().lower() == 'm2':
             print_prompt("Enter wavelength window to mask out:  blue, red:")
             maskstr = raw_input("> ")
@@ -794,6 +866,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                 print_prompt('Invalid entry. Enter wavelengths separated by commas')
             else:
                 config_pars['mask_region2'] = maskwave
+
         elif option.strip().lower() == 'm3':
             print_prompt("Enter wavelength window to mask out:  blue, red (Angstroms:")
             maskstr = raw_input("> ")
@@ -805,6 +878,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             else:
                 config_pars['mask_region3'] = maskwave
 
+
         # change the transition wavelength between the grisms
         elif option.strip().lower() == 't':
             print_prompt("The current transition wavelength is: " + str(config_pars['transition_wave']) + "\nEnter the wavelength for the G102 to G141 transition:")
@@ -812,6 +886,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                 config_pars['transition_wave'] = float(raw_input("> "))
             except ValueError:
                 print_prompt('Invalid entry. Enter wavelength of grism transition.')
+
 
         # change the nodes used for the continuum spline
         elif option.strip().lower() == 'nodes':
@@ -832,10 +907,35 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                 node_arr = np.sort(node_arr)
                 config_pars['node_wave'] = node_arr
 
+
+        elif option.strip().lower() == 'user':
+
+            if stored_fits !=  False:
+                print_prompt("Enter name of user for toggling between stored fits")
+                user_input = raw_input("> ")
+                try:
+                    w = users.index(user_input)
+                except ValueError:
+                    print_prompt('Invalid entry. Enter a valid user name.')
+
+                different_stored_fit = stored_fits[w]
+                fileObject = open(different_stored_fit,'r')
+                alldata = pickle.load(fileObject)
+                config_pars = alldata[10]
+                fitresults_old = alldata[8]
+                zguess = fitresults_old['redshift']
+                fwhm_guess = fitresults_old['fwhm_g141']
+            else:
+                print 'there are no stored fits!'
+
+
+
+
+
         # reset all options
         elif option.strip().lower() == 'reset':
             print_prompt("Reset configuration parameters, fwhm guess, and zguess to default values")
-            config_pars = read_config('default.config', availgrism=availgrism)  # M.D.R 01/27/2021
+            config_pars = read_config('default.config', availgrism=availgrism)
             fwhm_guess = 2.35 * a_image * config_pars['dispersion_red']
             # reset strongest line, too
             index_of_strongest_line = 0
@@ -844,6 +944,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             # reset contamflags
             for k, v in contamflags.iteritems():
                     contamflags[k] = contamflags[k] & 0
+            ### if use stored = true, this should set us back to using the pickle file values
 
         # change the blue cutoff of G102 (or whichever grism is present?)
         elif option.strip().lower() == 'bluecut':
@@ -853,6 +954,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             except ValueError:
                 print_prompt('Invalid entry. Enter wavelength of blue cutoff.')
 
+
         # change the red cutoff of G141
         elif option.strip().lower() == 'redcut':
             print_prompt("The current red cutoff is: " + str(config_pars['lambda_max']) + "\nChange the red cutoff of G141:")
@@ -860,6 +962,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                 config_pars['lambda_max'] = float(raw_input("> "))
             except ValueError:
                 print_prompt('Invalid entry. Enter wavelength of red cutoff.')
+
 
         # change to next brightest line
         elif option.strip().lower() == 'n':
@@ -872,6 +975,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                 print_prompt('There are no other automatically identified peaks. Select another option.')
                 # stay at current line
                 index_of_strongest_line -= 1
+
 
         # change to another line
         elif option.strip().lower() == 'lya': # M.D.R 01/06/2021
@@ -910,20 +1014,18 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                 except KeyError:
                     print_prompt('{} not known. Skipping'.format(contamflag))
             # sqlite3 database support - automatically creates and initializes DB if required
-            databaseManager.setFlags(par, obj, [(flagName, flagValue) for flagName, flagValue in contamflags.iteritems()]) #M.D.R - 2022/05/03 commented out in ahenry_mzr branch?
+            #databaseManager.setFlags(par, obj, [(flagName, flagValue) for flagName, flagValue in contamflags.iteritems()])
 
         # add a comment
         elif option.strip().lower() == 'c':
             print_prompt("Enter your comment here:")
-            #M.D.R - 2022/05/03
-	        if len(comment) > 0:
+            if len(comment) > 0:
                 comment = raw_input("> ") + ', ' + comment
             else :
                 comment =  raw_input("> ")
-            #M.D.R - 2022/05/03
 
             # sqlite3 database support - automatically creates and initializes DB if required
-            databaseManager.saveAnnotation((par, obj, comment.decode('utf-8'))) #M.D.R - 2022/05/03 commented out in ahenry_mzr branch?
+           # databaseManager.saveAnnotation((par, obj, comment.decode('utf-8')))
 
         # set or unset one or more flags
         elif option.strip().lower() == 'flag':
@@ -931,7 +1033,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             print_prompt('Valid flags are {}'.format(WISPLFDatabaseManager.WISPLFDatabaseManager.validMutableFlags))
             flagList = raw_input("> ")
             # sqlite3 database support - automatically creates and initializes DB if required
-            databaseManager.setFlagsFromString(par, obj, flagList.decode('utf-8')) #M.D.R - 2022/05/03 commented out in ahenry_mzr branch?
+            #databaseManager.setFlagsFromString(par, obj, flagList.decode('utf-8'))
 
         # write object summary
         elif option.strip().lower() == 's':
@@ -946,16 +1048,16 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         # change 2d stamp scaling to linear
         elif option.strip().lower() == 'lin':
             if g102zeros is not None:
-                show2dNEW('G102', par, obj, g102zeros, user, 'linear')
+                show2dNEW('G102', par, obj, g102zeros, user, 'linear', path_to_wisp_data = path_to_wisp_data)
             if g141zeros is not None:
-                show2dNEW('G141', par, obj, g141zeros, user, 'linear')
+                show2dNEW('G141', par, obj, g141zeros, user, 'linear', path_to_wisp_data = path_to_wisp_data)
 
         # change 2d stamp scaling to log
         elif option.strip().lower() == 'log':
             if g102zeros is not None:
-                show2dNEW('G102', par, obj, g102zeros, user, 'log')
+                show2dNEW('G102', par, obj, g102zeros, user, 'log', path_to_wisp_data = path_to_wisp_data )
             if g141zeros is not None:
-                show2dNEW('G141', par, obj, g141zeros, user, 'log')
+                show2dNEW('G141', par, obj, g141zeros, user, 'log', path_to_wisp_data = path_to_wisp_data)
 
         # change g102 2d stamp scaling to zscale
         elif option.strip().lower() == 'zs102':
@@ -970,7 +1072,8 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             else:
                 if g102zeros is not None:
                     show2dNEW('G102', par, obj, g102zeros, user, 'linear',
-                              zran1=z1, zran2=z2)
+                              zran1=z1, zran2=z2, path_to_wisp_data = path_to_wisp_data)
+
 
         # change g141 2d stamp scaling to zscale
         elif option.strip().lower() == 'zs141':
@@ -985,19 +1088,19 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             else:
                 if g141zeros is not None:
                     show2dNEW('G141', par, obj, g141zeros, user, 'linear',
-                              zran1=z1, zran2=z2)
+                              zran1=z1, zran2=z2, path_to_wisp_data = path_to_wisp_Data )
 
         # recenter full images
         elif option.strip().lower() == 'dc':
-            showDirectNEW(obj)
+            showDirectNEW(obj, path_to_wisp_data = path_two_wisp_data )
             if show_dispersed:  # MB
-                showDispersed(obj)
+                showDispersed(obj, path_to_wisp_data = path_to_wisp_data)
 
         # reload full iamges
         elif option.strip().lower() == 'reload':
-            showDirectNEW(obj, load_image=True)
+            showDirectNEW(obj, load_image=True, path_to_wisp_data = path_to_wisp_data)
             if show_dispersed:
-                showDispersed(obj, load_image=True)
+                showDispersed(obj, load_image=True, path_to_wisp_data = path_to_wisp_data)
 
         # reload direct image region files
         elif option.strip().lower() == 'dr':
@@ -1048,11 +1151,13 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                                  contamflags)
 
             # sqlite3 database support - automatically creates and initializes DB if required
-            databaseManager.saveCatalogueEntry(databaseManager.layoutCatalogueData(par, obj, ra[0], dec[0], a_image[0],
-                                                                                   b_image[0], jmag[0], hmag[0], fitresults, flagcont))  #M.D.R - 2022/05/03 commented out in ahenry_mzr branch?
+            #databaseManager.saveCatalogueEntry(databaseManager.layoutCatalogueData(par, obj, ra[0], dec[0], a_image[0],
+            #                                                                       b_image[0], jmag[0], hmag[0], fitresults, flagcont))
 
+            # writeToCatalog(linelistoutfile, par, obj, ra, dec, a_image,
+            #                b_image, jmag, hmag, snr_tot_others, fitresults, contamflags)
             writeToCatalog(linelistoutfile, par, obj, ra, dec, a_image,
-                           b_image, jmag, hmag, snr_tot_others, fitresults, contamflags) #M.D.R - 2022/05/03 Added snr_tot_others from ahenry_mzr branch
+                           b_image, jmag, hmag, snr_tot_others, fitresults, contamflags) # MDR 2022/05/17 - removed snr_tot_others or code crashes.
 
             writeFitdata(fitdatafilename, spec_lam, spec_val, spec_unc,
                          spec_con, spec_zer, full_fitmodel, full_contmodel, mask_flg)
@@ -1062,16 +1167,14 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                                 jmag, hmag, fitresults, flagcont, config_pars]
             pickle.dump(output_meta_data, fitspec_pickle)
             fitspec_pickle.close()
-        #M.D.R - 2022/05/03 Commented out to match ahenry_mzr branch.
-        # else :
+        # else:
         #     # done == 1, but zset == 0 => rejected
         #     databaseManager.saveCatalogueEntry(databaseManager.layoutCatalogueData(par, obj, ra[0], dec[0], a_image[0],
-        #                                                                            b_image[0], jmag[0], hmag[0],
-        #                                                                            None,
-        #                                                                            None))
+        #                                                                           b_image[0], jmag[0], hmag[0],
+        #                                                                           None,
+        #                                                                           None))
         #     databaseManager.setFlags(par, obj, [('REJECT', 1)])
         #     databaseManager.saveAnnotation((par, obj, 'REJECTED'))
-        #M.D.R - 2022/05/03 Commented out to match ahenry_mzr branch.
 
         # write comments to file
         # if we go back to the previous objects, duplicate comments will still be
@@ -1079,15 +1182,16 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         writeComments(commentsfile, par, obj, comment)
 
         # write object to done file, incase process gets interrupted
-        if not os.path.exists('linelist/done_%s'%user):
-            f = open('linelist/done_%s'%user, 'w')
+        if not os.path.exists(outdir + '/done_%s'%user):
+            f = open(outdir + '/done_%s'%user, 'w')
         else:
-            f = open('linelist/done_%s'%user, 'a')
+            f = open(outdir + '/done_%s'%user, 'a')
         f.write('%i\n' % obj)
         f.close()
 
 
 def check_input_objid(objlist, objid, nextup):
+    if (verbose == True): print('\nRunning check_input_objid...\n') # MDR 2022/05/17
     """ """
     fulllist = ', '.join(['%i' % o for o in objlist])
     if objid not in objlist:
@@ -1110,17 +1214,28 @@ def check_input_objid(objlist, objid, nextup):
     return objid
 
 
-def measure_z_interactive(linelistfile=" ", show_dispersed=True, use_stored_fit=False, print_colors=True):
+def measure_z_interactive(linelistfile=" ", path_to_wisp_data = ' ', show_dispersed=True, path_to_stored_fits = ' ', print_colors=True):
+    if (verbose == True): print('\nRunning measure_z_interactive...\n') # MDR 2022/05/17
     # turn off color printing to terminal if required
     if print_colors is False:
         global setcolors
         for k,v in setcolors.iteritems():
             setcolors[k] = '\033[0m'
-    #M.D.R - 2022/05/03 Copied to match ahenry_mzr branch, but not implemented in above function  calls.
+
     if path_to_wisp_data == ' ':
         ### running from the Spectra directory
         path_to_wisp_data = '../../'
-    #M.D.R - 2022/05/03 Copied to match ahenry_mzr branch, but not implemented in above function  calls.
+
+
+    #if path_to_stored_fits == ' ':
+    #    use_stored_fits  = False
+    #elif os.path.exists(path_to_stored_fits) :
+    #    use_stored_fits = True
+    #    print 'looking for stored fit data'
+    #else:
+    #    use_stored_fits = False
+    #    print 'not using stored fit data'
+
 
     #### STEP 0:   set ds9 window to tile mode ################################
     ###########################################################################
@@ -1142,19 +1257,36 @@ def measure_z_interactive(linelistfile=" ", show_dispersed=True, use_stored_fit=
             return 0
         else:
             linelistfile = files[0]
-
     if not os.path.exists(linelistfile):
         print_prompt("Invalid path to line list file: %s" % (linelistfile), prompt_type='interim')
         return 0
     else:
         print_prompt('Found line list file: %s' % (linelistfile), prompt_type='interim')
 
-    #### STEP 1b:  set user name and output directory #########################
+    #### STEP 1b:   read the list of candidate lines  ####################
     ###########################################################################
-    print('Searching for data files...') # - M.D.R. - 10/08/2020
-    tmp = glob('*.dat')[0] # tmp = glob('Par*BEAM*.dat')[0] - M.D.R. - 10/08/2020
-    par = '0' # par = tmp.split('_')[0] - M.D.R. - 10/08/2020
-    #print('tmp, par = ', tmp, par) # - M.D.R. - 10/08/2020
+
+    llin = asciitable.read(linelistfile, names=[
+                           'parnos', 'grism', 'objid', 'wavelen', 'npix', 'ston'])
+    parnos = llin['parnos']
+    grism = llin['grism']
+    objid = llin['objid']
+    wavelen = llin['wavelen']
+    npix = llin['npix']
+    ston = llin['ston']
+    objid_unique = np.unique(objid)
+    par = '0' #par = parnos[0] # MDR 2022/05/17
+
+
+    #### STEP 2:  set user name and output directory #########################
+    ###########################################################################
+    if (verbose == True):
+        print('')
+        print('Searching for data files in...\n') # MDR 2022/05/17
+        print(os.getcwd())
+        print('')
+
+    tmp = glob(path_to_wisp_data + 'Par' + str(par) + '/Spectra/*.dat')[0] # MDR 2022/05/17
     print_prompt('You are about to inspect emission lines identified in {}'.format(par), prompt_type='interim')
     print_prompt('Please enter your name or desired username', prompt_type='interim')
     while True:
@@ -1166,25 +1298,18 @@ def measure_z_interactive(linelistfile=" ", show_dispersed=True, use_stored_fit=
             break
     user = user.strip().lower()
     # create output directory
-    outdir = 'Par%s_output_%s'%(par,user) # outdir = '%s_output_%s'%(par,user) - M.D.R. - 10/08/2020
+    outdir = 'Par%s_output_%s'%(par,user)
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
 
-
-    #### STEP 2:   read the list of candidate lines  ####################
-    ###########################################################################
-    llin = asciitable.read(linelistfile, names=[
-                           'parnos', 'grism', 'objid', 'wavelen', 'npix', 'ston'])
-    parnos = llin['parnos']
-    grism = llin['grism']
-    objid = llin['objid']
-    wavelen = llin['wavelen']
-    npix = llin['npix']
-    ston = llin['ston']
-    objid_unique = np.unique(objid)
+    # if (verbose == True):
+    #     print('tmp =', tmp) # MDR 2022/05/17
+    #     print('user =', user) # MDR 2022/05/17
+    #     print('outdir =', outdir) # MDR 2022/05/17
 
     #### STEP 3: define filenames and check for partially complete work #####
     #########################################################################
+    if (verbose == True): print('\nCreating figs and fitdata directories...\n') # MDR 2022/05/17
     if not os.path.exists(os.path.join(outdir,'figs')):
         os.makedirs(os.path.join(outdir,'figs'))
     if not os.path.exists(os.path.join(outdir,'fitdata')):
@@ -1194,7 +1319,13 @@ def measure_z_interactive(linelistfile=" ", show_dispersed=True, use_stored_fit=
     linelistoutfile = os.path.join(outdir,'%s_catalog_%s.dat'%(parts[0],user))
     commentsfile = os.path.join(outdir,'%s_comments_%s.dat'%(parts[0],user))
     # the file that will be used to determine which objects are "done"
-    donefile = 'linelist/done_%s'%user
+    donefile = outdir+ '/done_%s'%user
+
+    # if (verbose == True):
+    #     print('parts =', parts) # MDR 2022/05/17
+    #     print('linelistoutfile =', linelistoutfile) # MDR 2022/05/17
+    #     print('commentsfile =', commentsfile) # MDR 2022/05/17
+    #     print('donefile =', donefile) # MDR 2022/05/17
 
     if os.path.isfile(linelistoutfile):
         print_prompt('\nOutput file: \n  %s \nalready exists\n' % linelistoutfile, prompt_type='interim')
@@ -1211,8 +1342,8 @@ def measure_z_interactive(linelistfile=" ", show_dispersed=True, use_stored_fit=
             # then reset the database tables.
             # All Par numbers in the putative line list file should be the same, so the zeroth
             # element corresponds to the current field ID.
-            databaseManager = WDBM(dbFileNamePrefix=os.path.join(outdir,'Par{}'.format(parnos[0]))) #M.D.R - 2022/05/03 commented out in ahenry_mzr branch?
-            databaseManager.resetDatabaseTables() #M.D.R - 2022/05/03 commented out in ahenry_mzr branch?
+            #databaseManager = WDBM(dbFileNamePrefix=os.path.join(outdir,'Par{}'.format(parnos[0])))
+            #databaseManager.resetDatabaseTables()
         else:
             # an object may be written to the comment file before it has
             # actually been inspected, so use donefile for a list
@@ -1225,14 +1356,16 @@ def measure_z_interactive(linelistfile=" ", show_dispersed=True, use_stored_fit=
 
     #### STEP 4: create trace.reg files ############################
     #########################################################################
-    trace102 = open('G102_trace.reg', 'w')
+    if (verbose == True): print('Creating trace.reg files...\n') # MDR 2022/05/17
+
+    trace102 = open(path_to_wisp_data + '/Par'  + str(par) + '/Spectra/G102_trace.reg', 'w')
     trace102.write('global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1\n')
     trace102.write('wcs;\n')
     # sensitivity drops below 25% of max at wave < 8250 and wave > 11540
     # so box should be 3290 angstroms wide and be centered at 9895.
     trace102.write('box(9895,0,3290,1,1.62844e-12)\n')
     trace102.close()
-    trace141 = open('G141_trace.reg', 'w')
+    trace141 = open(path_to_wisp_data + '/Par' + str(par) + '/Spectra/G141_trace.reg', 'w')
     trace141.write('global color=green dashlist=8 3 width=1 font="helvetica 10 normal roman" select=1 highlite=1 dash=0 fixed=0 edit=1 move=1 delete=1 include=1 source=1\n')
     trace141.write('wcs;\n')
     # sensitivity drops below 25% of max at wave < 10917 and wave > 16904
@@ -1242,10 +1375,10 @@ def measure_z_interactive(linelistfile=" ", show_dispersed=True, use_stored_fit=
 
     #### STEP 5:  Get zero and first order positions; unpack them ###########
     #########################################################################
-    g102zeroordreg = "../DATA/DIRECT_GRISM/G102_0th.reg"
-    g102firstordreg = "../DATA/DIRECT_GRISM/G102_1st.reg"
-    g141zeroordreg = "../DATA/DIRECT_GRISM/G141_0th.reg"
-    g141firstordreg = "../DATA/DIRECT_GRISM/G141_1st.reg"
+    g102zeroordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G102_0th.reg'
+    g102firstordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G102_1st.reg'
+    g141zeroordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G141_0th.reg'
+    g141firstordreg = path_to_wisp_data + '/Par' + str(par) + '/DATA/DIRECT_GRISM/G141_1st.reg'
 
     #### STEP 6:  Get object information from SExtractor catalog ############
     #########################################################################
@@ -1255,9 +1388,16 @@ def measure_z_interactive(linelistfile=" ", show_dispersed=True, use_stored_fit=
     # ra/dec, b_image, jmag, jerr, hmag, herr will be carried forward into
     #   the output linelist.
     # find all available cats
-    secats = glob('../DATA/DIRECT_GRISM/fin_F*.cat')
+    secats = glob(os.getcwd()+'/DATA/DIRECT_GRISM/fin_f*.cat') # MDR 2022/05/17
     secats.sort()
     cat = asciitable.read(secats[0])
+
+    if (verbose == True):
+        print('I found the following catalogs...\n') # MDR 2022/05/17
+        print(secats) # MDR 2022/05/17
+        print('\nThe catalog was read in as...\n') # MDR 2022/05/17
+        print(cat)
+        print('') # MDR 2022/05/17
 
     #beam = cat['col2'] - M.D.R. - 10/08/2020
     #a_image = cat['col5'] - M.D.R. - 10/08/2020
@@ -1273,23 +1413,23 @@ def measure_z_interactive(linelistfile=" ", show_dispersed=True, use_stored_fit=
     dec = cat['DELTA_J2000']
 
     # which filter is this?
-    if os.path.basename(secats[0]) == 'fin_F110.cat':
-        jmag = cat['col13']
-        jerr = cat['col14']
-        # in case there is a F110-only field
-        hmag = np.ones(ra.shape, dtype=float) * 99.
-        herr = np.ones(ra.shape, dtype=float) * 99.
-    else:
-        jmag = np.ones(ra.shape, dtype=float) * 99.
-        jerr = np.ones(ra.shape, dtype=float) * 99.
-        hmag = cat['MAG_AUTO'] # hmag = cat['col13'] - M.D.R. - 10/08/2020
-        herr = cat['MAGERR_AUTO'] # herr = cat['col14'] - M.D.R. - 10/08/2020
+    # if os.path.basename(secats[0]) == 'fin_F110.cat': # MDR 2022/05/17
+    #     jmag = cat['col13'] # MDR 2022/05/17
+    #     jerr = cat['col14'] # MDR 2022/05/17
+    #     # in case there is a F110-only field # MDR 2022/05/17
+    #     hmag = np.ones(ra.shape, dtype=float) * 99. # MDR 2022/05/17
+    #     herr = np.ones(ra.shape, dtype=float) * 99. # MDR 2022/05/17
+    # else:
+    jmag = np.ones(ra.shape, dtype=float) * 99.
+    jerr = np.ones(ra.shape, dtype=float) * 99.
+    hmag = cat['MAG_AUTO'] # hmag = cat['col13'] - M.D.R. - 10/08/2020
+    herr = cat['MAGERR_AUTO'] # herr = cat['col14'] - M.D.R. - 10/08/2020
     # read in second file if there are two
-    if len(secats) == 2:
-        cat2 = asciitable.read(secats[1])
-        # second catalog should be hband
-        hmag = cat2['col13']
-        herr = cat2['col14']
+    # if len(secats) == 2: # MDR 2022/05/17
+    #     cat2 = asciitable.read(secats[1]) # MDR 2022/05/17
+    #     # second catalog should be hband # MDR 2022/05/17
+    #     hmag = cat2['col13'] # MDR 2022/05/17
+    #     herr = cat2['col14'] # MDR 2022/05/17
     objtable = Table([beam, ra, dec, a_image, b_image, jmag, jerr, hmag, herr],
                      names=('obj', 'ra', 'dec', 'a_image', 'b_image', 'jmag',
                             'jerr', 'hmag', 'herr'))
@@ -1300,30 +1440,45 @@ def measure_z_interactive(linelistfile=" ", show_dispersed=True, use_stored_fit=
         g102zeroarr = getzeroorders(g102zeroordreg, g='G102')
         # nothing is done with the first orders anymore
         # g102firstarr=getfirstorders(g102firstordreg)
-        show2dNEW('G102', parnos[0], objid_unique[0], g102zeroarr, user, 'linear')
+        show2dNEW('G102', parnos[0], objid_unique[0], g102zeroarr, user, 'linear', path_to_wisp_data = path_to_wisp_data)
     else:
         g102zeroarr = None
         g102firstarr = None
     if os.path.exists(g141zeroordreg):
         g141zeroarr = getzeroorders(g141zeroordreg, g='G102')
         # g141firstarr=getfirstorders(g141firstordreg)
-        show2dNEW('G141', parnos[0], objid_unique[0], g141zeroarr, user, 'linear')
+        show2dNEW('G141', parnos[0], objid_unique[0], g141zeroarr, user, 'linear', path_to_wisp_data = path_to_wisp_data)
     else:
         g141zeroarr = None
         g141firstarr = None
 
-    showDirectNEW(objid_unique[0], load_image=True)
+    showDirectNEW(objid_unique[0], parnos[0], load_image=True, path_to_wisp_data = path_to_wisp_data)
     if show_dispersed:  # MB
-        showDispersed(objid_unique[0], load_image=True)
+        showDispersed(objid_unique[0], parnos[0], load_image=True, path_to_wisp_data  = path_to_wisp_data)
 
     #### STEP 8:  Loop through objects ############
     #########################################################################
+    if (verbose == True): print('\nStarting loop through objects...\n') # MDR 2022/05/17
+
     remaining_objects = get_remaining_objects(objid_unique, objid_done)
     allobjects = [unique_obj for unique_obj in objid_unique]
 
+    # if (verbose == True):
+    #     print('remaining_objects =', remaining_objects) # MDR 2022/05/17
+    #     print('allobjects =', allobjects) # MDR 2022/05/17
+
     print_prompt('\nAs you loop through the objects, you can choose from the following\noptions at any time:\n\txxx = skip to object xxx\n\tb = revisit the previous object\n\tleft = list all remaining objects that need review\n\tlist = list all objects in line list\n\tany other key = continue with the next object\n\th = help/list interactive commands\n\tq = quit\n', prompt_type='interim')
 
-    while remaining_objects.shape[0] > 0: #M.D.R - 2022/05/03 Some lines for stored fits from ahenry_mzr branch not included here. Needed?
+    while remaining_objects.shape[0] > 0:
+        if path_to_stored_fits == ' ':
+            use_stored_fits  = False
+        elif os.path.exists(path_to_stored_fits) :
+            use_stored_fits = True
+            print 'looking for stored fit data'
+        else:
+            use_stored_fits = False
+            print 'not using stored fit data'
+
         ndone = len(np.unique(objid_done))
         progress = float(ndone) / float(len(objid_unique)) * 100.
         print_prompt("\nProgress: %.1f percent" % (progress),prompt_type='interim')
@@ -1381,10 +1536,75 @@ def measure_z_interactive(linelistfile=" ", show_dispersed=True, use_stored_fit=
         ston_found = ston[wlinelist]
         wcatalog = np.where(objtable['obj'] == next_obj)
         objinfo = objtable[wcatalog]
-        inspect_object(user, parnos[0], next_obj, objinfo, lamlines_found,
-                       ston_found, g102zeroarr, g141zeroarr, linelistoutfile,
-                       commentsfile, remaining_objects, allobjects,
-                       show_dispersed=show_dispersed)
+        #inspect_object(user, parnos[0], next_obj, objinfo, lamlines_found,
+        #               ston_found, g102zeroarr, g141zeroarr, linelistoutfile,
+        #               commentsfile, remaining_objects, allobjects,
+        #               show_dispersed=show_dispersed)
+
+        if (use_stored_fits == True):
+            ### get pickle files:
+            inpickles = []
+            path_pickle1 = path_to_stored_fits + '/Par0_output_a/fitdata/Par0_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle1 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_mbagley/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle2 = path_to_stored_fits + '/Par'  + str(parnos[0]) +    '_output_marc/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle3 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_ben/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle4 = path_to_stored_fits + '/Par'  + str(parnos[0]) +     '_output_claudia/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle5 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_vihang/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle6 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_ivano/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle7 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_mbeck/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle8 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_karlenoid/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle9 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_mjr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle10 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_sophia/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle11 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_marc-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+            # path_pickle12 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_alaina-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+
+
+
+            ### put new fits first
+            # if os.path.exists(path_pickle11):
+            #     inpickles.append(path_pickle11)
+            # if os.path.exists(path_pickle12):
+            #     inpickles.append(path_pickle12)
+            if os.path.exists(path_pickle1):
+                inpickles.append(path_pickle1)
+            # if os.path.exists(path_pickle2):
+            #     inpickles.append(path_pickle2)
+            # if os.path.exists(path_pickle3):
+            #     inpickles.append(path_pickle3)
+            # if os.path.exists(path_pickle4):
+            #     inpickles.append(path_pickle4)
+            # if os.path.exists(path_pickle5):
+            #     inpickles.append(path_pickle5)
+            # if os.path.exists(path_pickle6):
+            #     inpickles.append(path_pickle6)
+            # if os.path.exists(path_pickle7):
+            #     inpickles.append(path_pickle7)
+            # if os.path.exists(path_pickle8):
+            #     inpickles.append(path_pickle8)
+            # if os.path.exists(path_pickle9):
+            #     inpickles.append(path_pickle9)
+            # if os.path.exists(path_pickle10):
+            #     inpickles.append(path_pickle10)
+
+
+            if len(inpickles) == 0:
+                use_stored_fits = False
+
+
+
+        if use_stored_fits == True:
+             inspect_object(user, parnos[0], next_obj, objinfo,
+                                lamlines_found, ston_found, g102zeroarr,
+                                g141zeroarr, linelistoutfile, commentsfile,
+                                remaining_objects, allobjects,
+                                 show_dispersed=show_dispersed, stored_fits = inpickles, path_to_wisp_data = path_to_wisp_data)
+        else:
+            inspect_object(user, parnos[0], next_obj, objinfo,
+                            lamlines_found, ston_found, g102zeroarr,
+                            g141zeroarr, linelistoutfile, commentsfile,
+                            remaining_objects, allobjects,
+                            show_dispersed=show_dispersed, stored_fits = False, path_to_wisp_data = path_to_wisp_data)
+
         objid_done = np.append(objid_done, next_obj)
         remaining_objects = get_remaining_objects(objid_unique, objid_done)
 
@@ -1407,16 +1627,81 @@ def measure_z_interactive(linelistfile=" ", show_dispersed=True, use_stored_fit=
                     ston_found = ston[wlinelist]
                     wcatalog = np.where(objtable['obj'] == next_obj)
                     objinfo = objtable[wcatalog]
-                    inspect_object(user, parnos[0], next_obj, objinfo,
-                                   lamlines_found, ston_found, g102zeroarr,
-                                   g141zeroarr, linelistoutfile, commentsfile,
-                                   remaining_objects, allobjects,
-                                   show_dispersed=show_dispersed)
+
+
+                    if (use_stored_fits == True):
+                       ### get pickle files:
+                       inpickles = []
+                       path_pickle1 = path_to_stored_fits + '/Par0_output_a/fitdata/Par0_' + str(next_obj) + '_fitspec.pickle'
+                       # path_pickle1 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_mbagley/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+                       # path_pickle2 = path_to_stored_fits + '/Par'  + str(parnos[0]) +    '_output_marc/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+                       # path_pickle3 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_claudia/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+                       # path_pickle4 = path_to_stored_fits + '/Par'  + str(parnos[0]) +     '_output_ben/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+                       # path_pickle5 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_vihang/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+                       # path_pickle6 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_ivano/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+                       # path_pickle7 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_mbeck/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+                       # path_pickle8 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_karlenoid/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+                       # path_pickle9 = path_to_stored_fits + '/Par'  + str(parnos[0]) +  '_output_mjr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+                       # path_pickle10 = path_to_stored_fits + '/Par'  + str(parnos[0]) + '_output_sophia/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+                       # path_pickle11 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_marc-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+                       # path_pickle12 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_alaina-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
+
+
+
+                       ### put new fits first
+                       # if os.path.exists(path_pickle11):
+                       #     inpickles.append(path_pickle11)
+                       # if os.path.exists(path_pickle12):
+                       #     inpickles.append(path_pickle12)
+                       if os.path.exists(path_pickle1):
+                          inpickles.append(path_pickle1)
+                       # if os.path.exists(path_pickle2):
+                       #    inpickles.append(path_pickle2)
+                       # if os.path.exists(path_pickle3):
+                       #    inpickles.append(path_pickle3)
+                       # if os.path.exists(path_pickle4):
+                       #    inpickles.append(path_pickle4)
+                       # if os.path.exists(path_pickle5):
+                       #    inpickles.append(path_pickle5)
+                       # if os.path.exists(path_pickle6):
+                       #    inpickles.append(path_pickle6)
+                       # if os.path.exists(path_pickle7):
+                       #    inpickles.append(path_pickle7)
+                       # if os.path.exists(path_pickle8):
+                       #    inpickles.append(path_pickle8)
+                       # if os.path.exists(path_pickle9):
+                       #    inpickles.append(path_pickle9)
+                       # if os.path.exists(path_pickle10):
+                       #    inpickles.append(path_pickle10)
+
+
+                       if len(inpickles) == 0:
+                           use_stored_fits = False
+
+
+
+
+                    if (use_stored_fits ==True):
+                       inspect_object(user, parnos[0], next_obj, objinfo,
+                                lamlines_found, ston_found, g102zeroarr,
+                                g141zeroarr, linelistoutfile, commentsfile,
+                                remaining_objects, allobjects,
+                                 show_dispersed=show_dispersed, stored_fits = inpickles, path_to_wisp_data = path_to_wisp_data)
+                    else:
+                        inspect_object(user, parnos[0], next_obj, objinfo,
+                            lamlines_found, ston_found, g102zeroarr,
+                            g141zeroarr, linelistoutfile, commentsfile,
+                            remaining_objects, allobjects,
+                            show_dispersed=show_dispersed, stored_fits = False, path_to_wisp_data = path_to_wisp_data)
                 else:
                     break
 
     make_tarfile(outdir)
     print_prompt('A tarfile of your outputs has been created: %s.tar.gz'%outdir, prompt_type='interim')
+
+
+
+
 
    # Clean up temp files
     if os.path.exists('./tempcoo.dat') == 1:
@@ -1555,7 +1840,7 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>6d}'.format(contamflags['s32']) +\
         '{:>13.2e}'.format(fitresults['he1_flux']) + \
         '{:>13.2e}'.format(fitresults['he1_error']) + \
-        '{:>13.2e}'.format(fitresults['he1_ew_obs']) +\
+        '{:>12.2e}'.format(fitresults['he1_ew_obs']) +\
         '{:>6d}'.format(contamflags['he1']) +\
         '{:>13.2e}'.format(fitresults['lya_flux']) + \
         '{:>13.2e}'.format(fitresults['lya_error']) + \
@@ -1579,6 +1864,7 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
 
 
 def writeFitdata(filename, lam, flux, eflux, contam, zero, fit, continuum, masks):
+    if (verbose == True): print('\nRunning writeFitdata...\n') # MDR 2022/05/17
     """ """
     fitspec_file = filename + '.dat'
     t = Table([lam, flux, eflux, contam, zero, fit, continuum, masks],
@@ -1597,6 +1883,7 @@ def writeFitdata(filename, lam, flux, eflux, contam, zero, fit, continuum, masks
 
 
 def writeComments(filename, parnos, objid, comment):
+    if (verbose == True): print('Running writeComments...\n') # MDR 2022/05/17
     if os.path.exists(filename) == False:
         cat = open(filename, 'w')
     else:
@@ -1611,7 +1898,7 @@ def writeComments(filename, parnos, objid, comment):
 
 
 def UpdateCatalog(linelistoutfile):
-
+    if (verbose == True): print('Running UpdateCatalog...\n') # MDR 2022/05/17
     allDirectoryFiles = os.listdir('./fitdata/')
     objid_list = []
     for obj in allDirectoryFiles:
@@ -1640,5 +1927,6 @@ def UpdateCatalog(linelistoutfile):
         flagcont = alldata[9]
         # config_pars = alldata[10] ## not used here.
 
+        if (verbose == True): print('Writing to catalog...\n') # MDR 2022/05/17
         WriteToCatalog(linelistoutfile, parnos, objid_unique, ra_obj, dec_obj,
                        a_image_obj, b_image_obj, jmag_obj, hmag_obj, fitresults, flagcont)
