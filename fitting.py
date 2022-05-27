@@ -7,7 +7,7 @@ def emissionline_model(pars, x):
 
     # mpfit.py allows for 'pegged', 'fixed', and 'limited' parameters with 'limits'.
     # See the mpfit.py code for a detailed description of how each is defined, but
-    # it's useful to note that 'pegged' parameters are simply thos 'fixed' at their
+    # it's useful to note that 'pegged' parameters are simply those 'fixed' at their
     # upper or lower limit, which is confusing terminology.
 
     # pegged parameters:
@@ -23,8 +23,8 @@ def emissionline_model(pars, x):
     fwhm_red     = pars[8]
     fwhm_blue    = (ratio_fwhm * fwhm_red)
 
-    sigma_blue = (fwhm_blue / 2.35)
-    sigma_red  = (fwhm_red  / 2.35)
+    sigma_blue = (fwhm_blue / 2.3548)
+    sigma_red  = (fwhm_red  / 2.3548)
 
     ##### line amplitudes
     ### current sims include ha, hb, hg, oiii, oii, nii, sii
@@ -125,28 +125,33 @@ def emissionline_model(pars, x):
         if np.size(w1) > 0:
             cont_model[w1] = interpolate.splev(x[w1], cont_spline_rep_red, der=0)
 
-    # The blocks of code below add each emission line to the line_model, which
-    # consists of the continuum + emission lines. The lines are added manually
-    # in each block which is unsustainable for adding many new lines. The below
-    # function adds these lines one at a time, with a few lines that have special
-    # constrains still added in individual blocks below.
+    ############################################################################
+    ############################################################################
 
-    ############################################################################
-    ############################################################################
+    '''The line_model that will be fit to the data consists of a flux continuum
+    and emission lines. The emission lines are added to the model one at a time
+    using the add_emission_line_to_model() function defined below. The function
+    extracts a wavelength array centered on the line with a width controlled by
+    the 'fit_region' parameter defined in the 'default.config' file. There are
+    several groups of emission lines such as [O III]+HB, and HA+[N II]+[S II]
+    that have special constraints and are added using specialized code below.'''
 
     def add_emission_line_to_model(centroid, amplitude):
 
         if (centroid < transition_wave): sigma = sigma_blue
         if (centroid > transition_wave): sigma = sigma_red
+
         w = np.where((x > (centroid - fit_region)) & (x < (centroid + fit_region)))
-        if (np.size(w) > 0): line_model[w] = line_model[w] + (amplitude * gaussian(x[w], centroid, sigma))
+
+        if (np.size(w) > 0):
+            line_model[w] = line_model[w] + (amplitude * gaussian(x[w], centroid, sigma))
 
     ############################################################################
 
-    add_emission_line_to_model(lya_1216_obs, lya_1216_amp)
-    add_emission_line_to_model(oii_3727_obs, oii_3727_amp)
-    add_emission_line_to_model(oii_3730_obs, oii_3730_amp)
-    add_emission_line_to_model(hg_4342_obs, hg_4342_amp)
+    add_emission_line_to_model(lya_1216_obs,  lya_1216_amp)
+    add_emission_line_to_model(oii_3727_obs,  oii_3727_amp) # ensure that adding the [O II] lines individually is the same as simultaneously from original code block.
+    add_emission_line_to_model(oii_3730_obs,  oii_3730_amp) # ensure that adding the [O II] lines individually is the same as simultaneously from original code block.
+    add_emission_line_to_model(hg_4342_obs,   hg_4342_amp)
     add_emission_line_to_model(siii_9069_obs, siii_9069_amp)
     add_emission_line_to_model(siii_9532_obs, siii_9532_amp)
     add_emission_line_to_model(hei_10830_obs, hei_10830_amp)
@@ -156,7 +161,7 @@ def emissionline_model(pars, x):
     # The [O III] and HB lines are fit simultaneously in a single wavelength range.
     if (hb_4863_obs < transition_wave): sigma = sigma_blue
     if (hb_4863_obs > transition_wave): sigma = sigma_red
-    # Incase hb has sigma_blue but oiii has sigma_red.
+    # Just incase HB has sigma_blue but [O III] has sigma_red.
     if (oiii_5007_obs < transition_wave): sigma_oiii = sigma_blue
     if (oiii_5007_obs > transition_wave): sigma_oiii = sigma_red
 
@@ -165,8 +170,8 @@ def emissionline_model(pars, x):
     if np.size(w) > 0:
         line_model[w] = line_model[w] + \
         oiii_5007_amp * gaussian(x[w], oiii_5007_obs, sigma_oiii) + \
-        oiii_4959_amp * gaussian(x[w], oiii_4959_obs, sigma_oiii)+ \
-        hb_4863_amp * gaussian(x[w], hb_4863_obs, sigma)
+        oiii_4959_amp * gaussian(x[w], oiii_4959_obs, sigma_oiii) + \
+        hb_4863_amp   * gaussian(x[w], hb_4863_obs, sigma)
 
     ############################################################################
 
@@ -192,115 +197,6 @@ def emissionline_model(pars, x):
 
     ############################################################################
     ############################################################################
-    #
-    # #### start adding lines:
-    # ### M.D.R 01/06/2021 ###
-    # if lya_1216_obs > transition_wave:
-    #    sigma = sigma_red
-    # else:
-    #     sigma = sigma_blue
-    # w=np.where( (x > lya_1216_obs - fit_region) & (x < lya_1216_obs + fit_region))
-    # if np.size(w) > 0:
-    #     line_lya = lya_1216_amp  * gaussian(x[w], lya_1216_obs, sigma)
-    #     line_model[w] = line_model[w] + line_lya
-    # ### M.D.R 01/06/2021 ###
-    #
-    #
-    #   #### region oii
-    # if oii_3727_obs > transition_wave:
-    #    sigma = sigma_red
-    # else:
-    #     sigma = sigma_blue
-    # w=np.where((x > oii_3727_obs - fit_region) & (x < oii_3727_obs + fit_region ))
-    # if np.size(w) > 0:
-    #     line_oii = oii_3727_amp * gaussian(x[w], oii_3727_obs, sigma) + \
-    #                oii_3730_amp * gaussian(x[w], oii_3730_obs, sigma)
-    #     line_model[w] = line_model[w] + line_oii
-    #
-    #
-    # if hg_4342_obs > transition_wave:
-    #    sigma = sigma_red
-    # else:
-    #     sigma = sigma_blue
-    # w=np.where( (x > hg_4342_obs - fit_region) & (x < hg_4342_obs + fit_region))
-    # if np.size(w) > 0:
-    #     line_hg = hg_4342_amp  * gaussian(x[w], hg_4342_obs, sigma)
-    #     line_model[w] = line_model[w] + line_hg
-    #
-    #
-    # ### region around oiii/hb
-    # if hb_4863_obs > transition_wave:
-    #    sigma = sigma_red
-    # else:
-    #     sigma = sigma_blue
-    #
-    #  ### in case hb has sigma_blue but oiii has sigma_red.
-    # if oiii_5007_obs >  transition_wave:
-    #     sigma_oiii = sigma_red
-    # else:
-    #     sigma_oiii = sigma_blue
-    # w=np.where( (x > hb_4863_obs - fit_region)  & (x < oiii_5007_obs + fit_region))
-    # if np.size(w) > 0:
-    #
-    #     lines_oiii = oiii_5007_amp * gaussian(x[w], oiii_5007_obs, sigma_oiii) + \
-    #     oiii_5007_amp/3. * gaussian(x[w], oiii_4959_obs, sigma_oiii)+ \
-    #     hb_4863_amp * gaussian(x[w], hb_4863_obs, sigma)
-    #
-    #     line_model[w] = line_model[w] + lines_oiii
-    #
-    # if ha_6565_obs > transition_wave:
-    #    sigma = sigma_red
-    # else:
-    #     sigma = sigma_blue
-    # if sii_6716_obs >  transition_wave:
-    #     sigma_sii = sigma_red
-    # else:
-    #     sigma_sii = sigma_blue
-    # w=np.where( (x >= ha_6565_obs - fit_region) & (x <= sii_6731_obs + fit_region))
-    # if np.size(w) > 0:
-    #     lines_ha = ha_6565_amp * gaussian(x[w], ha_6565_obs, sigma) + \
-    #          nii_6550_amp * gaussian(x[w], nii_6550_obs, sigma) + \
-    #          nii_6585_amp * gaussian(x[w], nii_6585_obs, sigma) + \
-    #          sii_6716_amp * gaussian(x[w], sii_6716_obs, sigma_sii) + \
-    #          sii_6731_amp * gaussian(x[w], sii_6731_obs, sigma_sii)
-    #     line_model[w] = line_model[w] + lines_ha
-    #
- #
- #
- #    ##### SIII 9069
- #    if siii_9069_obs > transition_wave:
- #       sigma = sigma_red
- #    else:
- #        sigma = sigma_blue
- #    w=np.where( (x > siii_9069_obs - fit_region) & (x < siii_9069_obs + fit_region))
- #    if np.size(w) > 0:
- #        line_siii_9069 = siii_9069_amp  * gaussian(x[w], siii_9069_obs, sigma)
- #        line_model[w] = line_model[w] +  line_siii_9069
- #
- #
- # ##### SIII 9532
- #    if siii_9532_obs > transition_wave:
- #       sigma = sigma_red
- #    else:
- #        sigma = sigma_blue
- #    w=np.where( (x > siii_9532_obs - fit_region) & (x < siii_9532_obs + fit_region))
- #    if np.size(w) > 0:
- #        line_siii_9532 = siii_9532_amp  * gaussian(x[w], siii_9532_obs, sigma)
- #        line_model[w] = line_model[w] + line_siii_9532
- #
- #
- # ##### hei_10830
- #    if hei_10830_obs > transition_wave:
- #       sigma = sigma_red
- #    else:
- #        sigma = sigma_blue
- #    w=np.where( (x > hei_10830_obs - fit_region) & (x < hei_10830_obs + fit_region))
- #    if np.size(w) > 0:
- #        line_hei_10830 = hei_10830_amp  * gaussian(x[w], hei_10830_obs, sigma)
- #        line_model[w] = line_model[w] + line_hei_10830
-
-# ha moved from here.
-# oiii moved from here.
 
 
 def model_resid(pars, fjac=None, lam = None, flux = None, err = None):
@@ -335,19 +231,35 @@ def fit_obj(input_list):
     ### which we'll get from the process of finding the line.
 
     #### these only need to be approximate for masking the lines.
+    # lya_1216_obs  = 1215.670 * (1+z_in) # M.D.R 01/06/2021
+    # oii_3727_obs  = 3727.092 * (1+z_in)
+    # hg_4342_obs   = 4341.684 * (1+z_in)
+    # hb_4863_obs   = 4862.683 * (1+z_in)
+    # oiii_5007_obs = 5008.240 * (1+z_in)
+    # ha_6565_obs   = 6564.610 * (1+z_in)
+    # #sii_obs       = 6725.480 * (1+z_in)
+    # sii_6716_obs  = 6718.290 * (1+z_in)
+    # sii_6731_obs  = 6732.670 * (1+z_in)
+    # siii_9069_obs = 9071.100 * (1+z_in)
+    # siii_9532_obs = 9533.200 * (1+z_in)
+    # hei_10830_obs = 10832.86 * (1+z_in)
     # I'm overly cautious and so updated these to exact values. # MDR 2022/05/25
-    lya_1216_obs  = 1215.670 * (1+z_in) # M.D.R 01/06/2021
-    oii_3727_obs  = 3727.092 * (1+z_in)
-    hg_4342_obs   = 4341.684 * (1+z_in)
-    hb_4863_obs   = 4862.683 * (1+z_in)
-    oiii_5007_obs = 5008.240 * (1+z_in)
-    ha_6565_obs   = 6564.610 * (1+z_in)
-    sii_obs       = 6725.480 * (1+z_in)
-    sii_6716_obs  = 6718.290 * (1+z_in)
-    sii_6731_obs  = 6732.670 * (1+z_in)
-    siii_9069_obs = 9071.100 * (1+z_in)
-    siii_9532_obs = 9533.200 * (1+z_in)
-    hei_10830_obs = 10832.86 * (1+z_in)
+    lya_1216_obs  = 1215.670 * (1+z_in) # MDR 2022/05/27
+    oii_3727_obs  = 3727.092 * (1+z_in) # MDR 2022/05/27
+    oii_3730_obs  = 3729.875 * (1+z_in) # MDR 2022/05/27
+    hg_4342_obs   = 4341.684 * (1+z_in) # MDR 2022/05/27
+    hb_4863_obs   = 4862.683 * (1+z_in) # MDR 2022/05/27
+    oiii_4959_obs = 4960.295 * (1+z_in) # MDR 2022/05/27
+    oiii_5007_obs = 5008.240 * (1+z_in) # MDR 2022/05/27
+    nii_6550_obs  = 6549.850 * (1+z_in) # MDR 2022/05/27
+    ha_6565_obs   = 6564.610 * (1+z_in) # MDR 2022/05/27
+    nii_6585_obs  = 6585.280 * (1+z_in) # MDR 2022/05/27
+    sii_6716_obs  = 6718.290 * (1+z_in) # MDR 2022/05/27
+    sii_6731_obs  = 6732.670 * (1+z_in) # MDR 2022/05/27
+    siii_9069_obs = 9071.100 * (1+z_in) # MDR 2022/05/27
+    siii_9532_obs = 9533.200 * (1+z_in) # MDR 2022/05/27
+    hei_10830_obs = 10832.86 * (1+z_in) # MDR 2022/05/27
+    # PICK UP HERE.
 
     flux_spec = flux_spec / scl
     error_spec = error_spec/scl
@@ -360,45 +272,72 @@ def fit_obj(input_list):
     #############################################################
 
     #### find the windows that we estimate to cover the continuum adjacent to the lines.
-    ### this doesn't have to be perfect, because we're only using it to get gueses.
-  #  w=np.where( ((lam_spec > ha_obs -fit_region) & (lam_spec < ha_obs - line_mask)) |
-  #              ((lam_spec > sii_obs + line_mask) & (lam_spec < sii_obs  + fit_region)) |
-  #         ((lam_spec > hb_obs - fit_region) & (lam_spec < hb_obs - line_mask))
-  #        | ((lam_spec > oiii_obs + line_mask) &  (lam_spec < oiii_obs + fit_region))
-  #        | ((lam_spec > hg_obs - fit_region) & (lam_spec < hg_obs - line_mask))
-  #        | ((lam_spec > hg_obs + line_mask) & (lam_spec < hg_obs + fit_region))
-  #        | ((lam_spec > oii_obs - fit_region) & (lam_spec < oii_obs - line_mask))
-  #        | ((lam_spec > oii_obs + line_mask) & (lam_spec < oii_obs + fit_region))
-  #        | ((lam_spec > he1_obs - fit_region) & (lam_spec < he1_obs - line_mask))
-  #        | ((lam_spec > he1_obs + line_mask) & (lam_spec < he1_obs + fit_region))
-  #        | ((lam_spec > siii_9069_obs - fit_region) & (lam_spec < siii_9069_obs - line_mask))
-  #        | ((lam_spec > siii_9069_obs + line_mask) & (lam_spec < siii_9069_obs + fit_region))
-  #        | ((lam_spec > siii_9532_obs - fit_region) & (lam_spec < siii_9532_obs - line_mask))
-  #        | ((lam_spec > siii_9532_obs + line_mask) & (lam_spec < siii_9532_obs + fit_region)))
-
+    ### this doesn't have to be perfect, because we're only using it to get guesses.
     ### low/high regions to ignore for sure.
-    mask_spec = lam_spec * 0.
-    w=np.where((lam_spec < lya_1216_obs - fit_region) | (lam_spec > hei_10830_obs + fit_region)) # M.D.R 01/06/2021
-#    w=np.where((lam_spec < oii_obs - fit_region) | (lam_spec > he1_obs + fit_region)) # M.D.R 01/06/2021 - original code
-    mask_spec[w] = 1.
-    w=np.where( (lam_spec > ha_6565_obs - line_mask) & (lam_spec < sii_obs + line_mask ))
-    mask_spec[w] = 1.
-    w=np.where( (lam_spec > hb_4863_obs - line_mask) & (lam_spec < oiii_5007_obs + line_mask))
-    mask_spec[w] = 1.
-    w=np.where( (lam_spec > hg_4342_obs - line_mask) & (lam_spec < hg_4342_obs+ line_mask))
-    mask_spec[w] = 1.
-    w=np.where( (lam_spec > oii_3727_obs - line_mask) & (lam_spec < oii_3727_obs + line_mask))
-    mask_spec[w] = 1.
-    w=np.where( (lam_spec > hei_10830_obs- line_mask) & (lam_spec < hei_10830_obs + line_mask))
-    mask_spec[w] = 1.
-    w=np.where( (lam_spec > siii_9069_obs - line_mask) & (lam_spec < siii_9069_obs + line_mask))
-    mask_spec[w] = 1.
-    w=np.where( (lam_spec > siii_9532_obs - line_mask) & (lam_spec < siii_9532_obs + line_mask))
-    mask_spec[w] = 1.
 
-    w=np.where(mask_spec == 0.)
+    ############################################################################
+    ############################################################################
 
+    '''The blocks of code below mask emission lines in the spectrum so that the
+    continuum level can be estimated for the first pass fit. The masks are added
+    one by one to the model, which is unsustainable for adding many new lines.
+    The below function masks the corresponding regions easily for many lines.
+    The code will mask from 'blue_line' to 'red_line', which can be used to mask
+    single lines or groups of emission lines (e.g. HA + [N II] + [S II]).'''
+
+    def mask_emission_lines(blue_line, red_line):
+
+        w = np.where((lam_spec > (blue_line - line_mask)) & (lam_spec < (red_line + line_mask)))
+        mask_spec[w] = 1.0
+
+    ############################################################################
+
+    # First set the mask equal to zero everywhere
+    # and mask regions outside the bluest and reddest line.
+    mask_spec = (lam_spec * 0.0)
+    w = np.where((lam_spec < lya_1216_obs - fit_region) | (lam_spec > hei_10830_obs + fit_region))
+    mask_spec[w] = 1.0
+
+    mask_emission_lines(lya_1216_obs, lya_1216_obs)
+    mask_emission_lines(oii_3727_obs, oii_3730_obs)
+    mask_emission_lines(hg_4342_obs, hg_4342_obs)
+    mask_emission_lines(hb_4863_obs, oiii_5007_obs)
+    mask_emission_lines(nii_6550_obs, sii_6731_obs)
+    mask_emission_lines(hei_10830_obs, hei_10830_obs)
+    mask_emission_lines(siii_9069_obs, siii_9069_obs)
+    mask_emission_lines(siii_9532_obs, siii_9532_obs)
+
+    w = np.where(mask_spec == 0.0)
     cont_guess = np.median(flux_spec[w])
+
+    ############################################################################
+    ############################################################################
+
+    #mask_spec = lam_spec * 0.
+    #w = np.where((lam_spec < lya_1216_obs - fit_region) | (lam_spec > hei_10830_obs + fit_region)) # M.D.R 01/06/2021
+    #mask_spec[w] = 1.
+    # w = np.where((lam_spec > ha_6565_obs - line_mask) & (lam_spec < sii_6731_obs + line_mask)) # MDR 2022/05/27
+    #w = np.where((lam_spec > nii_6550_obs - line_mask) & (lam_spec < sii_6731_obs + line_mask)) # MDR 2022/05/27
+    #mask_spec[w] = 1.
+    #w = np.where((lam_spec > hb_4863_obs - line_mask) & (lam_spec < oiii_5007_obs + line_mask))
+    #mask_spec[w] = 1.
+    #w = np.where((lam_spec > hg_4342_obs - line_mask) & (lam_spec < hg_4342_obs + line_mask))
+    #mask_spec[w] = 1.
+    # w = np.where((lam_spec > oii_3727_obs - line_mask) & (lam_spec < oii_3727_obs + line_mask)) # MDR 2022/05/27
+    #w = np.where((lam_spec > oii_3727_obs - line_mask) & (lam_spec < oii_3730_obs + line_mask)) # MDR 2022/05/27
+    #mask_spec[w] = 1.
+    #w = np.where((lam_spec > hei_10830_obs- line_mask) & (lam_spec < hei_10830_obs + line_mask))
+    #mask_spec[w] = 1.
+    #w = np.where((lam_spec > siii_9069_obs - line_mask) & (lam_spec < siii_9069_obs + line_mask))
+    #mask_spec[w] = 1.
+    #w = np.where((lam_spec > siii_9532_obs - line_mask) & (lam_spec < siii_9532_obs + line_mask))
+    #mask_spec[w] = 1.
+    #w = np.where(mask_spec == 0.)
+
+    ############################################################################
+    ############################################################################
+
+    #cont_guess = np.median(flux_spec[w]) # MDR 2022/05/27 - Moved above, this can be removed.
     ####### define model constraints
     # z_in, fwhm, nnodes, line amps, spline y-guesses
     #pguess = np.zeros(19 + 2 * nnodes) # M.D.R 01/06/2021
@@ -438,7 +377,7 @@ def fit_obj(input_list):
     parinfo[4]['fixed'] = 1   # dz   These don't matter for the continuum only fit.
     parinfo[5]['fixed'] = 1   # dz
     parinfo[6]['fixed'] = 1   # dz
-    parinfo[7]['fixed'] = 1  ### ratio of blue to red fwhm. pegged at 0.5
+    parinfo[7]['fixed'] = 1  ### ratio of blue to red fwhm. pegged above.
 
     #### parameters fixed for the continuum fitting
     parinfo[6]['fixed'] = 1  # z
@@ -472,26 +411,15 @@ def fit_obj(input_list):
         ############################################################
         ###### step 2, repeat the fit, now using the continuum guesses
         #############################################################
-        #### first select the new wavelength windows for fitting:
-        #w=np.where((lam_spec < oii_obs - fit_region) | (lam_spec > he1_10830 + fit_region))
-        ### evaulate continuum fit again, this time indluding the wavlengths under the line:
-        #fit = emissionline_model(out.params, lam_spec[w])
-
-        # overplot the continuum only fit from step 1, this time evaluting it under the emission line as well.
-        #plt.plot(lam_spec[w], fit, color = 'green')
-
-         #####################  2a ############ improve peak guesses
-         #### adjust redshift guess according to peak of lines.
-         #### simplified!  keeping zguess instead of re-guessing.
-
-
-        # The blocks of code below determine the best guess amplitude for each
-        # emission line. The amplitudes are added manually to the model, which
-        # is unsustainable for adding many new lines. The below function
-        # determines the amplitudes one at a time and adds them to the input.
+        #####################  2a ############ improve peak guesses
 
         ############################################################################
         ############################################################################
+
+        '''The blocks of code below determine the best guess amplitude for each
+        emission line. The amplitudes are added manually to the model, which
+        is unsustainable for adding many new lines. The below function
+        determines the amplitudes one at a time and adds them to the input.'''
 
         def estimate_emission_line_amplitudes(centroid):
             if ((centroid > np.min(lam_spec)) & (centroid < np.max(lam_spec))):
@@ -513,184 +441,18 @@ def fit_obj(input_list):
 
         lya_1216_amp_guess  = estimate_emission_line_amplitudes(lya_1216_obs)
         oii_3727_amp_guess  = estimate_emission_line_amplitudes(oii_3727_obs)
+        oii_3730_amp_guess  = estimate_emission_line_amplitudes(oii_3730_obs) # Is this needed? The ratio guess is coded above?
         hg_4342_amp_guess   = estimate_emission_line_amplitudes(hg_4342_obs)
         hb_4863_amp_guess   = estimate_emission_line_amplitudes(hb_4863_obs)
         oiii_5007_amp_guess = estimate_emission_line_amplitudes(oiii_5007_obs)
         ha_6565_amp_guess   = estimate_emission_line_amplitudes(ha_6565_obs)
         sii_6716_amp_guess  = estimate_emission_line_amplitudes(sii_6716_obs)
-        sii_6731_amp_guess  = estimate_emission_line_amplitudes(sii_6731_obs)
+        sii_6731_amp_guess  = estimate_emission_line_amplitudes(sii_6731_obs) # Is this needed? The ratio guess is coded above?
         siii_9069_amp_guess = estimate_emission_line_amplitudes(siii_9069_obs)
         hei_10830_amp_guess = estimate_emission_line_amplitudes(hei_10830_obs)
 
         ############################################################################
         ############################################################################
-        #
-        #
-        # ###### calculate guesses for amplitudes and redshifts of strongest lines.
-        # if ((ha_6565_obs > np.min(lam_spec)) & (ha_6565_obs < np.max(lam_spec) ) ) :
-        #     if ha_6565_obs > transition_wave:
-        #        disp    = disp_red
-        #     else:
-        #         disp = disp_blue
-        #     wline = np.where((lam_spec > ha_6565_obs - 5* disp) & (lam_spec < ha_6565_obs + 5*disp))
-        #     if np.size(wline) >0:
-        #         peakval = np.max(flux_spec[wline])
-        #         ha_6565_amp_guess = peakval - emissionline_model(out.params, np.array([ha_6565_obs]))  ### flam - flam_cont
-        #         ha_6565_amp_guess = ha_6565_amp_guess[0] ### ensure it is scalar
-        #         if ha_6565_amp_guess < 0:
-        #             ha_6565_amp_guess = 0.
-        #     else:
-        #         ha_6565_amp_guess =1.
-        # else:
-        #     ha_6565_amp_guess = 1.    ### doesn't matter not being fit.
-        #
-        #
-        # if ((oiii_5007_obs > np.min(lam_spec) ) & (oiii_5007_obs < np.max(lam_spec)) ) :
-        #      if oiii_5007_obs >  transition_wave:
-        #          disp = disp_red
-        #      else:
-        #          disp = disp_blue
-        #      wline = np.where((lam_spec > oiii_5007_obs - 5 * disp) & (lam_spec < oiii_5007_obs + 5*disp))
-        #      ### a gap in the spectrum can still break the code.
-        #      if np.size(wline) > 0:
-        #          peakval = np.max(flux_spec[wline])
-        #          oiii_5007_amp_guess=  peakval - emissionline_model(out.params, np.array([oiii_5007_obs])) ### flam - flam_cont
-        #          oiii_5007_amp_guess = oiii_5007_amp_guess[0]
-        #          if oiii_5007_amp_guess < 0:
-        #              oiii_5007_amp_guess = 0.
-        #      else:
-        #          oiii_5007_amp_guess = 1.
-        # else:
-        #      oiii_5007_amp_guess = 1.
-        #
-        #
-        # if ((hg_4342_obs > np.min(lam_spec)) & ( hg_4342_obs < np.max(lam_spec))):
-        #     if hg_4342_obs > transition_wave:
-        #         disp = disp_red
-        #     else:
-        #         disp = disp_blue
-        #     wline = np.where((lam_spec > hg_4342_obs - 5*disp) & (lam_spec < hg_4342_obs + 5*disp))
-        #     if np.size(wline) > 0 :
-        #         peakval = np.max(flux_spec[wline])
-        #         hg_4342_amp_guess = peakval - emissionline_model(out.params, np.array([hg_4342_obs]))  ### flam - flam_cont
-        #         hg_4342_amp_guess = hg_4342_amp_guess[0]
-        #         if hg_4342_amp_guess < 0:
-        #             hg_4342_amp_guess = 0.
-        #     else:
-        #         hg_4342_amp_guess = 1
-        # else:
-        #     hg_4342_amp_guess = 1
-        #
-        #
-        # if ((hb_4863_obs > np.min(lam_spec)) & ( hb_4863_obs < np.max(lam_spec))):
-        #     if hb_4863_obs > transition_wave:
-        #         disp = disp_red
-        #     else:
-        #         disp = disp_blue
-        #     wline = np.where((lam_spec > hb_4863_obs - 5*disp) & (lam_spec < hb_4863_obs + 5*disp))
-        #     if np.size(wline) > 0:
-        #         peakval = np.max(flux_spec[wline])
-        #         hb_4863_amp_guess = peakval - emissionline_model(out.params, np.array([hb_4863_obs]))  ### flam - flam_cont
-        #         hb_4863_amp_guess = hb_4863_amp_guess[0]
-        #         if hb_4863_amp_guess < 0:
-        #             hb_4863_amp_guess = 0.
-        #     else:
-        #         hb_4863_amp_guess=1.
-        # else:
-        #     hb_4863_amp_guess = 1
-        #
-        #
-        # if ((oii_3727_obs > np.min(lam_spec)) & ( oii_3727_obs < np.max(lam_spec) ) ):
-        #     if oii_3727_obs > transition_wave:
-        #         disp =  disp_red
-        #     else:
-        #         disp = disp_blue
-        #     wline = np.where((lam_spec > oii_3727_obs - 5*disp) & (lam_spec < oii_3727_obs + 5*disp))
-        #     if np.size(wline) > 0 :
-        #         peakval = np.max(flux_spec[wline])
-        #         oii_3727_amp_guess = peakval - emissionline_model(out.params, np.array([oii_3727_obs]))  ### flam - flam_cont
-        #         oii_3727_amp_guess = oii_3727_amp_guess[0]
-        #         if oii_3727_amp_guess < 0:
-        #             oii_3727_amp_guess = 0.
-        #     else:
-        #         oii_3727_amp_guess = 1.
-        # else:
-        #     oii_3727_amp_guess = 1
-        #
-        #
-        # if ((sii_6716_obs > np.min(lam_spec)) & ( sii_6716_obs < np.max(lam_spec) ) ):
-        #     if sii_6716_obs > transition_wave:
-        #         disp =  disp_red
-        #     else:
-        #         disp = disp_blue
-        #     wline = np.where((lam_spec > sii_6716_obs - 5*disp) & (lam_spec < sii_6716_obs + 5*disp))
-        #     if np.size(wline) > 0:
-        #         peakval = np.max(flux_spec[wline])
-        #         sii_6716_amp_guess = peakval - emissionline_model(out.params, np.array([sii_6716_obs]))  ### flam - flam_cont
-        #         sii_6716_amp_guess = sii_6716_amp_guess[0]
-        #         if sii_6716_amp_guess < 0:
-        #             sii_6716_amp_guess = 0.
-        #     else:
-        #         sii_6716_amp_guess = 1
-        # else:
-        #     sii_6716_amp_guess = 1
-        #
-        #
-        # if ((siii_9069_obs > np.min(lam_spec)) & ( siii_9069_obs < np.max(lam_spec) ) ):
-        #     if siii_9069_obs > transition_wave:
-        #         disp =  disp_red
-        #     else:
-        #         disp = disp_blue
-        #     wline = np.where((lam_spec > siii_9069_obs - 5*disp) & (lam_spec < siii_9069_obs + 5*disp))
-        #     if np.size(wline) > 0:
-        #         peakval = np.max(flux_spec[wline])
-        #         siii_9069_amp_guess = peakval - emissionline_model(out.params, np.array([siii_9069_obs]))  ### flam - flam_cont
-        #         siii_9069_amp_guess = siii_9069_amp_guess[0]
-        #         if siii_9069_amp_guess < 0:
-        #             siii_9069_amp_guess = 0.
-        #     else:
-        #         siii_9069_amp_guess = 1.
-        # else:
-        #     siii_9069_amp_guess = 1
-        #
-        #
-        # if ((hei_10830_obs > np.min(lam_spec)) & ( hei_10830_obs < np.max(lam_spec) ) ):
-        #     if hei_10830_obs > transition_wave:
-        #         disp =  disp_red
-        #     else:
-        #         disp = disp_blue
-        #     wline = np.where((lam_spec > hei_10830_obs - 5*disp) & (lam_spec < hei_10830_obs + 5*disp))
-        #     if np.size(wline) >0:
-        #         peakval = np.max(flux_spec[wline])
-        #         hei_10830_amp_guess = peakval - emissionline_model(out.params, np.array([hei_10830_obs]))  ### flam - flam_cont
-        #         hei_10830_amp_guess = hei_10830_amp_guess[0]
-        #         if hei_10830_amp_guess < 0:
-        #             hei_10830_amp_guess = 0.
-        #     else:
-        #         hei_10830_amp_guess = 1
-        # else:
-        #     hei_10830_amp_guess = 1
-        #
-# ### M.D.R 01/06/2021 ###
-#         if ((lya_1216_obs > np.min(lam_spec)) & ( lya_1216_obs < np.max(lam_spec))):
-#             if lya_1216_obs > transition_wave:
-#                 disp = disp_red
-#             else:
-#                 disp = disp_blue
-#             wline = np.where((lam_spec > lya_1216_obs - 5*disp) & (lam_spec < lya_1216_obs + 5*disp))
-#             if np.size(wline) > 0 :
-#                 peakval = np.max(flux_spec[wline])
-#                 lya_1216_amp_guess = peakval - emissionline_model(out.params, np.array([lya_1216_obs]))  ### flam - flam_cont
-#                 lya_1216_amp_guess = lya_1216_amp_guess[0]
-#                 if lya_1216_amp_guess < 0:
-#                     lya_1216_amp_guess = 0.
-#             else:
-#                 lya_1216_amp_guess = 1
-#         else:
-#             lya_1216_amp_guess = 1
-# ### M.D.R 01/06/2021 ###
-
-
 
         ######### 2b fill in the parinfo array with this information:
         #pguess2 = [redshift_guess, fwhm_guess, nnodes,  ha_6565_amp_guess, 0.1 * ha_6565_amp_guess, 0.1 * ha_6565_amp_guess, 0.1 * ha_6565_amp_guess,
@@ -831,7 +593,7 @@ def fit_obj(input_list):
 
         # step 2c, do the fit:
         #w=np.where((lam_spec > oii_obs - fit_region) & (lam_spec < he1_obs + fit_region)) # M.D.R 01/07/2021
-        w=np.where((lam_spec > lya_1216_obs - fit_region) & (lam_spec < hei_10830_obs + fit_region)) # M.D.R 01/07/2021
+        w = np.where((lam_spec > lya_1216_obs - fit_region) & (lam_spec < hei_10830_obs + fit_region)) # M.D.R 01/07/2021
         fa2 = {'lam':lam_spec[w], 'flux':flux_spec[w], 'err':error_spec[w]}
 
         pguess2 = []
@@ -849,32 +611,19 @@ def fit_obj(input_list):
 
         #####re-evaluate observed wavelengths based on the refined fit to z;
         z_out         = out.params[3]
-        # lya_obs       = 1216 * (1+z_out) # M.D.R 01/06/2021
-        # oii_obs       = 3727 * (1+z_out)
-        # hg_obs        = 4342 * (1+z_out)
-        # hb_obs        = 4863 * (1+z_out)
-        # oiii_obs      = 5008 * (1+z_out)
-        # ha_obs        = 6565 * (1+z_out)
-        # sii_obs       = 6725 * (1+z_out)
-        # sii_6716_obs  = 6718 * (1+z_out)
-        # sii_6731_obs  = 6733 * (1+z_out)
-        # siii_9069_obs = 9071 * (1+z_out)
-        # siii_9532_obs = 9533 * (1+z_out)
-        # he1_obs       = 10833* (1+z_out)
+
         # I'm overly cautious and so updated these to exact values. # MDR 2022/05/25
-        lya_1216_obs  = 1215.670 * (1+z_out) # M.D.R 01/06/2021
+        lya_1216_obs  = 1215.670 * (1+z_out)
         oii_3727_obs  = 3727.092 * (1+z_out)
         hg_4342_obs   = 4341.684 * (1+z_out)
         hb_4863_obs   = 4862.683 * (1+z_out)
         oiii_5007_obs = 5008.240 * (1+z_out)
         ha_6565_obs   = 6564.610 * (1+z_out)
-        sii_obs       = 6725.480 * (1+z_out)
         sii_6716_obs  = 6718.290 * (1+z_out)
         sii_6731_obs  = 6732.670 * (1+z_out)
         siii_9069_obs = 9071.100 * (1+z_out)
         siii_9532_obs = 9533.200 * (1+z_out)
         hei_10830_obs = 10832.86 * (1+z_out)
-
 
         ##will use this below for all the direct fitting.
         if config_pars['fitfluxes'] != True:
@@ -884,16 +633,161 @@ def fit_obj(input_list):
         #####################################################
         ##### STEP 3  #### evaluate fluxes and return outputs.
         #### divide by zeros are handled, so we can suppress the warnings.
+
+        ############################################################################
+        ############################################################################
+
+        '''The blocks of code below calculate the flux, error, and equivalent
+        width for each emission line. The results are added manually to the output,
+        which is unsustainable for adding many new lines. The below function now
+        determines these parameters for each line and adds them to the output.'''
+
+        def calculate_emission_line_flux(centroid, amplitude_index, rest_wave):
+
+            with np.errstate(invalid = 'ignore', divide = 'ignore'):
+
+                if ((centroid > np.min(lam_spec)) & (centroid < np.max(lam_spec))):
+
+                    if (centroid < transition_wave):
+                        sig     = ((out.params[8] * out.params[7]) / 2.3548) # red fwhm * blue/red fwhm ratio.
+                        sig_err = ((out.perror[8] * out.params[7]) / 2.3548)
+
+                    if (centroid > transition_wave):
+                        sig     = (out.params[8] / 2.3548) # red fwhm
+                        sig_err = (out.perror[8] / 2.3548)
+
+                    covar_term = (2.0 * (out.covar[8][amplitude_index] / (out.params[8] * out.params[amplitude_index])))
+                    line_flux  = (np.sqrt(2.0 * math.pi) * (out.params[amplitude_index]) * (sig)) # The line flux is sqrt(2*pi) * height * sigma.
+
+                    if (line_flux > 0.0):
+                        line_err = line_flux * (np.sqrt(((out.perror[amplitude_index] / out.params[amplitude_index]) ** 2.0) + ((sig_err / sig) ** 2.0) + covar_term))
+                    else:
+                        w = np.where((lam_spec > (centroid - fwhm_guess)) & (lam_spec < (centroid + fwhm_guess)))
+                        line_err = np.sqrt(np.sum(error_spec[w] ** 2.0))
+
+                    line_cont   = emissionline_model(modelpars_nolines, rest_wave * np.array([1.0 + out.params[3]]))[0] # redshift.
+                    line_ew_obs = (line_flux / line_cont)
+
+                else:
+                    line_flux   = (-1 / scl)
+                    line_err    = (-1 / scl)
+                    line_ew_obs = (-1)
+
+            return line_flux, line_err, line_ew_obs
+
+        ############################################################################
+
+        hg_flux, hg_err, hg_ew_obs = calculate_emission_line_flux(hg_4342_obs, 16, 4341.684) # Define vacuum waves up to e.g. 'hb_4863_vac'
+        hb_flux, hb_err, hb_ew_obs = calculate_emission_line_flux(hb_4863_obs, 14, 4862.683)
+        hei_flux,hei_err,hei_ew_obs= calculate_emission_line_flux(hei_10830_obs,18,10832.86)
+        lya_flux,lya_err,lya_ew_obs= calculate_emission_line_flux(lya_1216_obs, 19,1215.670)
+
+        ############################################################################
+        ############################################################################
+
         with np.errstate(invalid='ignore', divide='ignore'):
-            #if zguess_ha > 0:   ### if ha is in the bandpass:
+            #
+            # if ( (lya_1216_obs > np.min(lam_spec)) & (lya_1216_obs < np.max(lam_spec))):  ### lya covered.
+            #     if lya_1216_obs > transition_wave:
+            #         sig = out.params[8]/2.3548
+            #         sig_err = out.perror[8]/2.3548
+            #         covar_term = 2  * out.covar[8][19] / (out.params[8] * out.params[19])
+            #     else:
+            #         sig = (out.params[7] * out.params[8])/2.3548
+            #         sig_err = (out.perror[8] * out.params[7])/2.3548
+            #         covar_term = 2  * out.covar[8][19] / (out.params[8] * out.params[19])
+            #
+            #     lya_flux =  np.sqrt(2 * math.pi) * out.params[19]  * sig
+            #     if lya_flux > 0:
+            #         lya_err =  lya_flux * np.sqrt( (out.perror[19]/out.params[19])**2 + (sig_err/sig)**2  +  covar_term)
+            #     else:
+            #         w=np.where((lam_spec > lya_1216_obs - fwhm_guess) & (lam_spec < lya_1216_obs + fwhm_guess))
+            #         lya_err = np.sqrt(np.sum(error_spec[w]**2))
+            #     lya_cont = emissionline_model(modelpars_nolines, 1216. * np.array([1 + out.params[3]]))
+            #     lya_ew_obs = lya_flux/lya_cont[0]
+            # else:
+            #     lya_flux =-1/scl
+            #     lya_err = -1/scl
+            #     lya_ew_obs = -1
+            #
+            # if ((hg_4342_obs > np.min(lam_spec)) & ( hg_4342_obs < np.max(lam_spec))):  ### hg covered.
+            #     if hg_4342_obs > transition_wave:
+            #         sig = out.params[8]/2.3548
+            #         sig_err = out.perror[8]/2.3548
+            #         covar_term = 2  * out.covar[8][16] / (out.params[8] * out.params[16])
+            #     else:
+            #         sig = (out.params[7] * out.params[8])/2.3548
+            #         sig_err = (out.perror[8] * out.params[7]) /2.3548
+            #         covar_term = 2  * out.covar[8][16] / (out.params[8] * out.params[16])
+            #
+            #     hg_flux = np.sqrt(2 * math.pi) * out.params[16]  * sig
+            #     if hg_flux > 0:
+            #         hg_err =  hg_flux * np.sqrt( (out.perror[16]/out.params[16])**2 + (sig_err/sig)**2  +  covar_term)
+            #     else :
+            #         w=np.where((lam_spec > hg_4342_obs - fwhm_guess) & (lam_spec < hg_4342_obs + fwhm_guess))
+            #         hg_err = np.sqrt(np.sum(error_spec[w]**2))
+            #     hg_cont = emissionline_model(modelpars_nolines, 4342 * np.array( [1 + out.params[3]] ))
+            #     hg_ew_obs = hg_flux/hg_cont[0]
+            # else:
+            #     hg_flux =-1/scl
+            #     hg_err = -1/scl
+            #     hg_ew_obs = -1
+            #
+            # if ((hb_4863_obs > np.min(lam_spec)) & ( hb_4863_obs < np.max(lam_spec))):  ### hb covered.
+            #     if hb_4863_obs > transition_wave:
+            #         sig = out.params[8]/2.3548
+            #         sig_err = out.perror[8]/2.3548
+            #         covar_term = 2  * out.covar[8][14] / (out.params[8] * out.params[14])
+            #     else:
+            #         sig = (out.params[7] * out.params[8])/2.3548
+            #         sig_err = (out.params[7]* out.perror[8])/2.3548
+            #         covar_term = 2  * out.covar[8][14] / (out.params[8] * out.params[14])
+            #
+            #     hb_flux = np.sqrt(2 * math.pi) * out.params[14]  * sig
+            #     if hb_flux > 0:
+            #         hb_err =  hb_flux * np.sqrt( (out.perror[14]/out.params[14])**2 + (sig_err/sig)**2  +  covar_term)
+            #     else :
+            #         w=np.where((lam_spec > hb_4863_obs - fwhm_guess) & (lam_spec < hb_4863_obs + fwhm_guess))
+            #         hb_err = np.sqrt(np.sum(error_spec[w]**2))
+            #     hb_cont = emissionline_model(modelpars_nolines, 4862 * np.array( [1 + out.params[3]] ))
+            #     hb_ew_obs = hb_flux/hb_cont[0]
+            # else:
+            #     hb_flux =-1/scl
+            #     hb_err = -1/scl
+            #     hb_ew_obs = -1
+            #
+            # if ( (hei_10830_obs > np.min(lam_spec)) & (hei_10830_obs < np.max(lam_spec))):  ### he1 covered.
+            #     if hei_10830_obs > transition_wave:
+            #         sig = out.params[8]/2.3548
+            #         sig_err = out.perror[8]/2.3548
+            #         covar_term = 2  * out.covar[8][18] / (out.params[8] * out.params[18])
+            #     else:
+            #         sig = (out.params[7] * out.params[8])/2.3548
+            #         sig_err = (out.perror[8] * out.params[7])/2.3548
+            #         covar_term = 2  * out.covar[8][18] / (out.params[8] * out.params[18])
+            #
+            #     hei_flux =  np.sqrt(2 * math.pi) * out.params[18]  * sig
+            #     if hei_flux > 0:
+            #         hei_err =  hei_flux * np.sqrt( (out.perror[18]/out.params[18])**2 + (sig_err/sig)**2  +  covar_term)
+            #     else:
+            #         w=np.where((lam_spec > hei_10830_obs - fwhm_guess) & (lam_spec < hei_10830_obs + fwhm_guess))
+            #         hei_err = np.sqrt(np.sum(error_spec[w]**2))
+            #     hei_cont = emissionline_model(modelpars_nolines, 10830. * np.array([1 + out.params[3]]))
+            #     hei_ew_obs = hei_flux/hei_cont[0]
+            # else:
+            #     hei_flux =-1/scl
+            #     hei_err = -1/scl
+            #     hei_ew_obs = -1
+
+
             if ((ha_6565_obs > np.min(lam_spec)) & (ha_6565_obs < np.max(lam_spec) ) ) :
                 if ha_6565_obs > transition_wave:
-                    sig = out.params[8] / 2.35
-                    sig_err = out.perror[8] / 2.35
+                    sig = out.params[8] / 2.3548
+                    sig_err = out.perror[8] / 2.3548
                     covar_term = 2  * out.covar[8][9] / (out.params[8] * out.params[9])
                 else:
-                    sig = (out.params[8] * out.params[7])/2.35   #### fwhm_blue = out.params[7] * out.params[8] ; 7 is the ratio and is fixed.
-                    sig_err = (out.perror[8] * out.params[7])/2.35
+                    sig = (out.params[8] * out.params[7])/2.3548   #### fwhm_blue = out.params[7] * out.params[8] ; 7 is the ratio and is fixed.
+                    sig_err = (out.perror[8] * out.params[7])/2.3548
                     covar_term = 2  * out.covar[8][9] / (out.params[8] * out.params[9])    #### here the covar and the param would be multiplied by out.params[7] so they cancel.
 
                 if config_pars['fitfluxes'] == True:
@@ -904,11 +798,11 @@ def fit_obj(input_list):
                         ha_err =  ha_flux * np.sqrt( (out.perror[9]/out.params[9])**2 + (sig_err/sig)**2 + covar_term)
                         hanii_err = (1 + out.params[12]) * ha_err
                     else :
-                        w=np.where((lam_spec > ha_6565_obs - 2 * 2.35 * sig) & (lam_spec < ha_6565_obs + 2 * 2.35 * sig))   ### this is actually a rather poor approximation
+                        w=np.where((lam_spec > ha_6565_obs - 2 * 2.3548 * sig) & (lam_spec < ha_6565_obs + 2 * 2.3548 * sig))   ### this is actually a rather poor approximation
                         hanii_err = np.sqrt(np.sum(error_spec[w]**2))
 
                 else:
-                    w=np.where((lam_spec > ha_6565_obs - 2 * 2.35 * sig) & (lam_spec < sii_obs + 2 * 2.35 * sig))
+                    w=np.where((lam_spec > ha_6565_obs - 2 * 2.3548 * sig) & (lam_spec < sii_6731_obs + 2 * 2.3548 * sig))
                     hanii_flux = integrate.trapz(flam_cont_subbed[w], lam_spec[w])
                     hanii_err = np.sqrt(np.sum(error_spec[w]**2))
 
@@ -923,12 +817,12 @@ def fit_obj(input_list):
 
             if ((oiii_5007_obs > np.min(lam_spec)) & (oiii_5007_obs < np.max(lam_spec) ) ) : ### if oiii 5007 is in the bandpass:
                 if oiii_5007_obs >  transition_wave:
-                    sig = out.params[8] / 2.35
-                    sig_err = out.perror[8] / 2.35
+                    sig = out.params[8] / 2.3548
+                    sig_err = out.perror[8] / 2.3548
                     covar_term = 2  * out.covar[8][13] / (out.params[8] * out.params[13])
                 else:
-                    sig = (out.params[7] * out.params[8] )/ 2.35
-                    sig_err = (out.perror[8]  * out.params[7])/ 2.35
+                    sig = (out.params[7] * out.params[8] )/ 2.3548
+                    sig_err = (out.perror[8]  * out.params[7])/ 2.3548
                     covar_term = 2  * out.covar[8][13] / (out.params[8] * out.params[13])
 
                 if config_pars['fitfluxes'] == True:
@@ -936,10 +830,10 @@ def fit_obj(input_list):
                     if oiii_flux > 0:
                         oiii_err = oiii_flux * np.sqrt( (out.perror[13]/out.params[13])**2 + (sig_err/sig)**2 + covar_term)
                     else:
-                        w=np.where((lam_spec > oiii_5007_obs - 2 * 2.35 * sig) & (lam_spec < oiii_5007_obs + 2 * 2.35 * sig))
+                        w=np.where((lam_spec > oiii_5007_obs - 2 * 2.3548 * sig) & (lam_spec < oiii_5007_obs + 2 * 2.3548 * sig))
                         oiii_err = np.sqrt(np.sum(error_spec[w]**2))
                 else:
-                     w=np.where((lam_spec > hb_4863_obs - 2 * 2.35 * sig) & (lam_spec < oiii_5007_obs + 2 * 2.35 * sig))
+                     w=np.where((lam_spec > hb_4863_obs - 2 * 2.3548 * sig) & (lam_spec < oiii_5007_obs + 2 * 2.3548 * sig))
                      oiii_flux = integrate.trapz(flam_cont_subbed[w], lam_spec[w])
                      oiii_err = np.sqrt(np.sum(error_spec[w]**2))
 
@@ -954,12 +848,12 @@ def fit_obj(input_list):
 
             if ((sii_6716_obs > np.min(lam_spec)) & ( sii_6731_obs < np.max(lam_spec))):  ### sii covered.
                 if sii_6716_obs > transition_wave:
-                    sig = out.params[8]/2.35
-                    sig_err = out.perror[8]/2.35
+                    sig = out.params[8]/2.3548
+                    sig_err = out.perror[8]/2.3548
                     covar_term = 2  * out.covar[8][10] / (out.params[8] * out.params[10])
                 else:
-                    sig = (out.params[8]*out.params[7])/2.35
-                    sig_err = (out.params[7]* out.perror[8])/2.35
+                    sig = (out.params[8]*out.params[7])/2.3548
+                    sig_err = (out.params[7]* out.perror[8])/2.3548
                     covar_term = 2  * out.covar[8][10] / (out.params[8] * out.params[10])
 
                 sii_6716_flux = np.sqrt(2 * math.pi) *  out.params[10] * sig
@@ -978,63 +872,17 @@ def fit_obj(input_list):
               sii_err = -1 /scl
               sii_ew_obs = -1
 
-
-            if ((hb_4863_obs > np.min(lam_spec)) & ( hb_4863_obs < np.max(lam_spec))):  ### hb covered.
-                if hb_4863_obs > transition_wave:
-                    sig = out.params[8]/2.35
-                    sig_err = out.perror[8]/2.35
-                    covar_term = 2  * out.covar[8][14] / (out.params[8] * out.params[14])
-                else:
-                    sig = (out.params[7] * out.params[8])/2.35
-                    sig_err = (out.params[7]* out.perror[8])/2.35
-                    covar_term = 2  * out.covar[8][14] / (out.params[8] * out.params[14])
-
-                hb_flux = np.sqrt(2 * math.pi) * out.params[14]  * sig
-                if hb_flux > 0:
-                    hb_err =  hb_flux * np.sqrt( (out.perror[14]/out.params[14])**2 + (sig_err/sig)**2  +  covar_term)
-                else :
-                    w=np.where((lam_spec > hb_4863_obs - fwhm_guess) & (lam_spec < hb_4863_obs + fwhm_guess))
-                    hb_err = np.sqrt(np.sum(error_spec[w]**2))
-                hb_cont = emissionline_model(modelpars_nolines, 4862 * np.array( [1 + out.params[3]] ))
-                hb_ew_obs = hb_flux/hb_cont[0]
-            else:
-                hb_flux =-1/scl
-                hb_err = -1/scl
-                hb_ew_obs = -1
-
-
-            if ((hg_4342_obs > np.min(lam_spec)) & ( hg_4342_obs < np.max(lam_spec))):  ### hg covered.
-                if hg_4342_obs > transition_wave:
-                    sig = out.params[8]/2.35
-                    sig_err = out.perror[8]/2.35
-                    covar_term = 2  * out.covar[8][16] / (out.params[8] * out.params[16])
-                else:
-                    sig = (out.params[7] * out.params[8])/2.35
-                    sig_err = (out.perror[8] * out.params[7]) /2.35
-                    covar_term = 2  * out.covar[8][16] / (out.params[8] * out.params[16])
-
-                hg_flux = np.sqrt(2 * math.pi) * out.params[16]  * sig
-                if hg_flux > 0:
-                    hg_err =  hg_flux * np.sqrt( (out.perror[16]/out.params[16])**2 + (sig_err/sig)**2  +  covar_term)
-                else :
-                    w=np.where((lam_spec > hg_4342_obs - fwhm_guess) & (lam_spec < hg_4342_obs + fwhm_guess))
-                    hg_err = np.sqrt(np.sum(error_spec[w]**2))
-                hg_cont = emissionline_model(modelpars_nolines, 4342 * np.array( [1 + out.params[3]] ))
-                hg_ew_obs = hg_flux/hg_cont[0]
-            else:
-                hg_flux =-1/scl
-                hg_err = -1/scl
-                hg_ew_obs = -1
-
+# hb moved from here.
+# hg moved from here.
 
             if ((oii_3727_obs > np.min(lam_spec)) & ( oii_3727_obs < np.max(lam_spec))):  ### oii covered.
                 if oii_3727_obs > transition_wave:
-                    sig = out.params[8]/2.35
-                    sig_err = out.perror[8]/2.35
+                    sig = out.params[8]/2.3548
+                    sig_err = out.perror[8]/2.3548
                     covar_term = 2  * out.covar[8][15] / (out.params[8] * out.params[15])
                 else:
-                    sig = (out.params[7] * out.params[8])/2.35
-                    sig_err = (out.perror[8] * out.params[7]) /2.35
+                    sig = (out.params[7] * out.params[8])/2.3548
+                    sig_err = (out.perror[8] * out.params[7]) /2.3548
                     covar_term = 2  * out.covar[8][15] / (out.params[8] * out.params[15])
 
                 oii_flux = 2.4 * np.sqrt(2 * math.pi) * out.params[15]  * sig    #### here the oii lines are also fit as a doublet, but the ratio is hard-coded.
@@ -1052,12 +900,12 @@ def fit_obj(input_list):
 
             if ((siii_9069_obs > np.min(lam_spec)) & ( siii_9069_obs < np.max(lam_spec))):  ### siii_9069 covered.
                 if siii_9069_obs > transition_wave:
-                    sig = out.params[8]/2.35
-                    sig_err = out.perror[8]/2.35
+                    sig = out.params[8]/2.3548
+                    sig_err = out.perror[8]/2.3548
                     covar_term = 2  * out.covar[8][17] / (out.params[8] * out.params[17])
                 else:
-                    sig = (out.params[7] * out.params[8]) /2.35
-                    sig_err = (out.perror[8] * out.params[7])/2.35
+                    sig = (out.params[7] * out.params[8]) /2.3548
+                    sig_err = (out.perror[8] * out.params[7])/2.3548
                     covar_term = 2  * out.covar[8][17] / (out.params[8] * out.params[17])
 
                 siii_9069_flux = np.sqrt(2 * math.pi) * out.params[17]  * sig
@@ -1079,12 +927,12 @@ def fit_obj(input_list):
                 #### and multiplies by 2.48.
                 #### this implementation was confusing.
                 if siii_9069_obs > transition_wave:    #### calculating the siii_9069_flux first and then scaling.  hence, use sig for 9069.
-                    sig = out.params[8]/2.35
-                    sig_err = out.perror[8]/2.35
+                    sig = out.params[8]/2.3548
+                    sig_err = out.perror[8]/2.3548
                     covar_term = 2  * out.covar[8][17] / (out.params[8] * out.params[17])
                 else:
-                    sig = (out.params[7] * out.params[8])/2.35
-                    sig_err = (out.perror[8] * out.params[7])/2.35
+                    sig = (out.params[7] * out.params[8])/2.3548
+                    sig_err = (out.perror[8] * out.params[7])/2.3548
                     covar_term = 2  * out.covar[8][17] / (out.params[8] * out.params[17])
 
                 siii_9532_flux = 2.48* np.sqrt(2 * math.pi) * out.params[17]  * sig
@@ -1101,55 +949,8 @@ def fit_obj(input_list):
                 siii_9532_err = -1/scl
                 siii_9532_ew_obs = -1
 
-
-            if ( (hei_10830_obs > np.min(lam_spec)) & (hei_10830_obs < np.max(lam_spec))):  ### he1 covered.
-                if hei_10830_obs > transition_wave:
-                    sig = out.params[8]/2.35
-                    sig_err = out.perror[8]/2.35
-                    covar_term = 2  * out.covar[8][18] / (out.params[8] * out.params[18])
-                else:
-                    sig = (out.params[7] * out.params[8])/2.35
-                    sig_err = (out.perror[8] * out.params[7])/2.35
-                    covar_term = 2  * out.covar[8][18] / (out.params[8] * out.params[18])
-
-                hei_flux =  np.sqrt(2 * math.pi) * out.params[18]  * sig
-                if hei_flux > 0:
-                    hei_err =  hei_flux * np.sqrt( (out.perror[18]/out.params[18])**2 + (sig_err/sig)**2  +  covar_term)
-                else:
-                    w=np.where((lam_spec > hei_10830_obs - fwhm_guess) & (lam_spec < hei_10830_obs + fwhm_guess))
-                    hei_err = np.sqrt(np.sum(error_spec[w]**2))
-                hei_cont = emissionline_model(modelpars_nolines, 10830. * np.array([1 + out.params[3]]))
-                hei_ew_obs = hei_flux/hei_cont[0]
-            else:
-                hei_flux =-1/scl
-                hei_err = -1/scl
-                hei_ew_obs = -1
-
-### M.D.R 01/06/2021 ###
-            if ( (lya_1216_obs > np.min(lam_spec)) & (lya_1216_obs < np.max(lam_spec))):  ### lya covered.
-                if lya_1216_obs > transition_wave:
-                    sig = out.params[8]/2.35
-                    sig_err = out.perror[8]/2.35
-                    covar_term = 2  * out.covar[8][19] / (out.params[8] * out.params[19])
-                else:
-                    sig = (out.params[7] * out.params[8])/2.35
-                    sig_err = (out.perror[8] * out.params[7])/2.35
-                    covar_term = 2  * out.covar[8][19] / (out.params[8] * out.params[19])
-
-                lya_flux =  np.sqrt(2 * math.pi) * out.params[19]  * sig
-                if lya_flux > 0:
-                    lya_err =  lya_flux * np.sqrt( (out.perror[19]/out.params[19])**2 + (sig_err/sig)**2  +  covar_term)
-                else:
-                    w=np.where((lam_spec > lya_1216_obs - fwhm_guess) & (lam_spec < lya_1216_obs + fwhm_guess))
-                    lya_err = np.sqrt(np.sum(error_spec[w]**2))
-                lya_cont = emissionline_model(modelpars_nolines, 1216. * np.array([1 + out.params[3]]))
-                lya_ew_obs = lya_flux/lya_cont[0]
-            else:
-                lya_flux =-1/scl
-                lya_err = -1/scl
-                lya_ew_obs = -1
-### M.D.R 01/06/2021 ###
-
+# hei copied from here.
+# lya copied from here.
 
         fit_results = {}
         fit_results['redshift'] = out.params[3]
@@ -1201,111 +1002,3 @@ def fit_obj(input_list):
 
     #return [out.params[0], out.params[1], ha_flux*scl, ha_err *scl, ha_ew_obs,  oiii_flux*scl, oiii_err * scl,  oiii_ew_obs, chisq, out.status, scl,  out.params]
     return fit_results
-
-# # The below is not used and can be removed and/or commented out? # MDR 2022/05/25
-# def fitandplot(path, par, beam_number, z_nate, fwhm_nate, config):
-#       #### path = location of .dat spectra
-#       #### par  = integer par number
-#       ### beam_number = integer beam number
-#       ### z_nate = z from line list or z_estimate
-#       ### fwhm_nate = fwhm of line in G141, or 2 * FWHM of line in G102.
-#       ### config = dictionary of configuration file
-#
-#       bluespec = path + 'MU1_' + str(beam_number) + '_G102.1D.dat' # bluespec = path + 'Par' + str(par) + '_G102_BEAM_' + str(beam_number) + 'A.dat' # - M.D.R. - 10/15/2020
-#       redspec  = path + 'MU1_' + str(beam_number) + '_G141.1D.dat' # redspec  = path + 'Par' + str(par) + '_G141_BEAM_' + str(beam_number) + 'A.dat' # - M.D.R. - 10/15/2020
-#
-#       #config = read_config('refit.config')
-#       tab_blue = asciitable.read(bluespec, names = ['lambda',  'flux', 'ferror', 'contam', 'junk'])
-#       tab_red =  asciitable.read(redspec,  names = ['lambda',  'flux', 'ferror', 'contam', 'junk'])
-#       spec = trim_spec(tab_blue, tab_red, config)
-#       lam =spec[0]
-#       flux = spec[1]
-#       error = spec[2]
-#       contam = spec[3]
-#
-#       input_list = [spec[0], spec[1]-spec[3], spec[2], config, z_nate,  fwhm_nate,  'notused']
-#       out = fit_obj(input_list)  ### dumping the inputs into a list was used in a previously parallelized version.
-#
-#       ### define windows for model plotting.
-#       ha_6565_obs   = 6565 * (1+z_nate)
-#       sii_obs       = 6725 * (1+z_nate)
-#       sii_6731_obs  = 6731 * (1+z_nate)
-#       hb_4863_obs   = 4863 * (1+z_nate)
-#       oiii_5007_obs = 5008 * (1+z_nate)
-#       hg_4342_obs   = 4342 * (1+z_nate)
-#       oii_3727_obs  = 3727 * (1+z_nate)
-#       siii_9069_obs = 9071 * (1+z_nate)
-#       siii_9532_obs = 9533 * (1+z_nate)
-#       hei_10830_obs = 10833* (1+z_nate)
-#       lya_1216_obs  = 1216 * (1+z_nate) # M.D.R 01/06/2021
-#
-#       lam_spec =lam
-#       fit_region = config['fit_region']
-#       flux_decontam = spec[1] - spec[3]
-#
-#       plt.plot(spec[0], flux_decontam, ls='steps-mid', color = 'k')
-#       #w=np.where((lam_spec >= oii_obs - fit_region) & (lam_spec<hei_obs + fit_region)) # M.D.R 01/07/2021
-#       w=np.where((lam_spec >= lya_1216_obs - fit_region) & (lam_spec<hei_10830_obs + fit_region)) # M.D.R 01/07/2021
-#       model_fit = emissionline_model(out['fit_parameters'], lam[w]) * out['fit_scale_factor']
-#       plt.plot(lam[w], model_fit, color = 'r')
-#       fitpars = out['fit_parameters']
-#       fitpars_nolines = cp.deepcopy(fitpars)
-#       #fitpars_nolines[9:19] = 0. # M.D.R 01/06/2021
-#       fitpars_nolines[9:20] = 0. # M.D.R 01/06/2021
-#       fitpars_nolines[11] = 1.4  ### can't kill this one or divide by zero.
-#       fitpars_nolines[12] = 0.1
-#
-#       cont_fit = emissionline_model(fitpars_nolines, lam[w]) * out['fit_scale_factor']
-#       plt.plot(lam[w], cont_fit, color = 'blue',ls = '--', lw=2)
-#      # print model_resid(out['fit_parameters'], lam = spec[0], flux = flux, err=error
-#
-#       plt.plot([ha_6565_obs, ha_6565_obs], [-1e-18, 6e-18], color='r')
-#       plt.plot([hb_4863_obs, hb_4863_obs], [-1e-18, 6e-18], color = 'g')
-#       plt.plot([oiii_5007_obs, oiii_5007_obs], [-1e-18, 6e-18], color = 'g')
-#       plt.plot([hg_4342_obs, hg_4342_obs], [-1e-18, 6e-18], color= 'cyan')
-#       plt.plot([oii_3727_obs, oii_3727_obs], [-1e-18, 6e-18], color = 'b')
-#       plt.plot([siii_9069_obs, siii_9069_obs], [-1e-18, 6e-18], color = 'magenta')
-#       plt.plot([siii_9532_obs, siii_9532_obs], [-1e-18, 6e-18], color = 'magenta')
-#       plt.plot([hei_10830_obs, hei_10830_obs], [-1e-18, 6e-18], color= 'orange')
-#       plt.plot([lya_1216_obs, lya_1216_obs], [-1e-18, 6e-18], color= 'orange') # M.D.R 01/06/2021
-#       plt.xlim(config['lambda_min']-100, config['lambda_max']+100)
-#
-#       #w=np.where( (lam_spec > 9500)  & (lam_spec < 15500)) # M.D.R 01/07/2021
-#       w=np.where( (lam_spec > 11500)  & (lam_spec < 15500)) # M.D.R 01/07/2021
-#       ymax = np.max(model_fit)
-#       #plt.ylim(-1e-18, 1.5 * ymax) # M.D.R 01/06/2021
-#       plt.ylim(-1e-18, 1.2 * ymax) # M.D.R 01/06/2021
-#
-#       #fit_region = config['fit_region']
-#       ### overplot the nodes
-#       #dx = fit_region / 2
-#       #clam1 = oii_obs - dx
-#       #dx = (hg_obs - oii_obs)/2.
-#       #clam2 = hg_obs - dx
-#       #dx = (hb_obs - hg_obs)/2.
-#       #clam3 = hb_obs - dx
-#       #dx = (ha_obs - oiii_obs)/3.
-#       #clam4 = ha_obs - 2 * dx
-#       #clam5 = ha_obs -  dx
-#       #dx = (siii_9069_obs - sii_6731_obs)/4
-#       #clam5 = siii_9069_obs - 3 * dx
-#       #clam6 = siii_9069_obs - 2 * dx
-#       #clam7 = siii_9069_obs - dx
-#       #clam8 = (siii_9069_obs + siii_9532_obs) / 2.
-#       #clam9 = (siii_9532_obs + hei_obs) / 2.
-#       #dx = fit_region/ 2
-#       #clam10   =  hei_obs  + dx
-#       #clam = np.array([clam1, clam2, clam3, clam4, clam5, clam6, clam7, clam8, clam9, clam10])
-#
-#       clam = np.array(config['node_wave'])
-#       plt.plot(clam, clam * 0 + 0.5 * ymax, 'ko')
-#       plt.title('BEAM ' + str(beam_number))
-#
-#       if not os.path.exists('fitfigs/'):
-#         os.makedirs('fitfigs/')
-#       plt.savefig('fitfigs/fig_beam' + str(beam_number) + '.pdf')
-#
-#       if config['showfig'] == True:
-#           plt.show()
-#       plt.close()
-#       return out
