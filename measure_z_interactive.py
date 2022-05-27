@@ -61,17 +61,17 @@ if (verbose == True):
 # define wavelengths of lines of interest
 # this is super not the way to do this, but oh well
 # updated to exact vacuum values and sorted - M.D.R. - 10/22/2020
-lam_Lya = 1215.67 # M.D.R 01/06/2021
-lam_Oii = 3728.48 #3727.0
-lam_Hg = 4341.68 #4341.0
-lam_Hbeta = 4862.68 #4861.0
-lam_Oiii_1 = 4960.30 #4959.0
-lam_Oiii_2 = 5008.24 #5007.0
-lam_Halpha = 6564.61 #6563.0
-lam_Sii = 6725.48 #6724.0
-lam_Siii_1 = 9071.1 #9069.0
-lam_Siii_2 = 9533.2 #9532.0
-lam_He = 10832.0 #10830.0
+lam_Lya    = 1215.670
+lam_Oii    = 3728.4835 #3727.0
+lam_Hg     = 4341.684 #4341.0
+lam_Hbeta  = 4862.683 #4861.0
+lam_Oiii_1 = 4960.295 #4959.0
+lam_Oiii_2 = 5008.240 #5007.0
+lam_Halpha = 6564.610 #6563.0
+lam_Sii    = 6725.480 #6724.0
+lam_Siii_1 = 9071.100 #9069.0
+lam_Siii_2 = 9533.200 #9532.0
+lam_He     = 10832.860 #10830.0
 # lam_Pag=10940.0
 # lam_Fe=12600.0
 # lam_Pab=12810.0
@@ -264,7 +264,7 @@ def write_object_summary(par, obj, fitresults, snr_meas_array, contamflags, summ
                           'Halpha', '[SII]', '[SIII]', '[SIII]', 'HeI'])  # M.D.R 01/06/2021
     # string names for accessing fitresults
 #    fluxstrs = ['oii','hg','hb','oiii','hanii','sii','siii_9069','siii_9532','he1']  # M.D.R 01/06/2021
-    fluxstrs = ['lya','oii','hg','hb','oiii','hanii','sii','siii_9069','siii_9532','he1']  # M.D.R 01/06/2021
+    fluxstrs = ['lya','oii','hg','hb','oiii','hanii','sii','siii_9069','siii_9532','hei']  # M.D.R 01/06/2021
     linefluxes = np.array([fitresults['%s_flux'%fs] for fs in fluxstrs])
 
     # initial message
@@ -614,7 +614,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
     catalogueEntryData = databaseManager.loadCatalogueEntry(parNumber=par, objectId=obj)
 
     ### # MDR 2022/05/17
-    # ATTEMPT TO GET REIFT WORKING AGAIN.
+    # GET REFIT OPTION WORKING.
     print('\nSearching for previous fits to object {}...\n'.format(str(obj)))
     #print('file = ', outdir + '/done_%s'%user)
 
@@ -765,8 +765,8 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                                    fitresults['siii_9069_error'],
                                    fitresults['siii_9532_flux'] /
                                    fitresults['siii_9532_error'],
-                                   fitresults['he1_flux'] /
-                                   fitresults['he1_error']])
+                                   fitresults['hei_flux'] /
+                                   fitresults['hei_error']])
 
         #### calculate the significance of the other lines that are not  oiii.
         signal_lines = np.array([fitresults['oii_flux'], fitresults['hg_flux'], fitresults['hb_flux'], fitresults['hanii_flux'], fitresults['sii_flux']])
@@ -970,7 +970,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             index_of_strongest_line = index_of_strongest_line + 1
             if index_of_strongest_line < (nlines_found_cwt):
                 lamline = lamlines_found[index_of_strongest_line]
-                zguess = lamline / 6564.61 - 1 #zguess = lamline / 6564. - 1  # M.D.R 01/06/2021
+                zguess = lamline / 6564.610 - 1 #zguess = lamline / 6564. - 1  # M.D.R 01/06/2021
             else:
                 print_prompt('There are no other automatically identified peaks. Select another option.')
                 # stay at current line
@@ -1739,7 +1739,7 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         cat.write('#11 SNR_confirm [Combined OII, Hg, Hb, Ha, SII] \n')
         cat.write('#12 dz_oiii \n')
         cat.write('#13 dz_oii \n')
-        cat.write('#14 dz_siii_he1 \n')
+        cat.write('#14 dz_siii_hei \n')
         cat.write('#15 G141_FWHM_Obs  [Angs] \n')
         cat.write('#16 G141_FWHM_Obs_err  \n')
         cat.write('#17 oii_flux \n')
@@ -1774,10 +1774,10 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         cat.write('#46 siii_9532_err \n')
         cat.write('#47 siii_9532_EW_obs \n')
         cat.write('#48 siii_9532_contam \n')
-        cat.write('#49 he1_10830_flux \n')
-        cat.write('#50 he1_10830_err \n')
-        cat.write('#51 he1_10830_EW_obs \n')
-        cat.write('#52 he1_10830_contam \n')
+        cat.write('#49 hei_10830_flux \n')
+        cat.write('#50 hei_10830_err \n')
+        cat.write('#51 hei_10830_EW_obs \n')
+        cat.write('#52 hei_10830_contam \n')
         cat.write('#53 lya_flux \n') # M.D.R 01/06/2021
         cat.write('#54 lya_err \n') # M.D.R 01/06/2021
         cat.write('#55 lya_EW_obs \n') # M.D.R 01/06/2021
@@ -1801,9 +1801,9 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>8.4f}'.format(fitresults['redshift']) + \
         '{:>10.4f}'.format(fitresults['redshift_err']) +\
         '{:>10.4f}'.format(snr_tot_others) +\
-        '{:>10.4f}'.format(fitresults['dz_oiii'])  + \
-        '{:>10.4f}'.format(fitresults['dz_oii'])   + \
-        '{:>10.4f}'.format(fitresults['dz_siii_he1']) +\
+        '{:>10.4f}'.format(fitresults['oiii_5007_dz'])  + \
+        '{:>10.4f}'.format(fitresults['oii_3727_dz'])   + \
+        '{:>10.4f}'.format(fitresults['siii_hei_dz']) +\
         '{:>10.2f}'.format(fitresults['fwhm_g141']) + \
         '{:>10.2f}'.format(fitresults['fwhm_g141_err'])  +  \
         '{:>13.2e}'.format(fitresults['oii_flux'])  + \
@@ -1838,9 +1838,9 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>13.2e}'.format(fitresults['siii_9532_error']) + \
         '{:>13.2e}'.format(fitresults['siii_9532_ew_obs']) +\
         '{:>6d}'.format(contamflags['s32']) +\
-        '{:>13.2e}'.format(fitresults['he1_flux']) + \
-        '{:>13.2e}'.format(fitresults['he1_error']) + \
-        '{:>12.2e}'.format(fitresults['he1_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['hei_flux']) + \
+        '{:>13.2e}'.format(fitresults['hei_error']) + \
+        '{:>13.2e}'.format(fitresults['hei_ew_obs']) +\
         '{:>6d}'.format(contamflags['he1']) +\
         '{:>13.2e}'.format(fitresults['lya_flux']) + \
         '{:>13.2e}'.format(fitresults['lya_error']) + \
