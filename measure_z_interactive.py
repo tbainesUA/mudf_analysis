@@ -264,7 +264,7 @@ def write_object_summary(par, obj, fitresults, snr_meas_array, contamflags, summ
                           'Halpha', '[SII]', '[SIII]', '[SIII]', 'HeI'])  # M.D.R 01/06/2021
     # string names for accessing fitresults
 #    fluxstrs = ['oii','hg','hb','oiii','hanii','sii','siii_9069','siii_9532','he1']  # M.D.R 01/06/2021
-    fluxstrs = ['lya','oii','hg','hb','oiii','hanii','sii','siii_9069','siii_9532','hei']  # M.D.R 01/06/2021
+    fluxstrs = ['la_1216','o2','hg_4342','hb_4863','o3_5007','han2','s2','s3_9069','s3_9532','he10830']  # M.D.R 01/06/2021
     linefluxes = np.array([fitresults['%s_flux'%fs] for fs in fluxstrs])
 
     # initial message
@@ -630,7 +630,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         if (catalogueEntryData != 1):
             print('No match found...\n')
 
-    print('Done searching for previous fits...\n')
+    print('Done searching for previous fits...')
     ### # MDR 2022/05/17
 
     rejectPrevFit = True
@@ -722,16 +722,31 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
         # compress the masked arrays for fitting
         fit_inputs = [np.ma.compressed(masked_spec_lam), np.ma.compressed(spec_val), np.ma.compressed(spec_unc), config_pars, zguess, fwhm_guess, str(obj)]
-        # parsing the input to facilitate parallel processing when fitting
-        # is done in batch mode.
+        # parsing the input to facilitate parallel processing when fitting is done in batch mode.
 
         fitresults = fit_obj(fit_inputs)
         zfit = fitresults['redshift']
         fitpars = fitresults['fit_parameters']
         fitpars_nolines = cp.deepcopy(fitpars)
-        fitpars_nolines[9:19] = 0.
-        fitpars_nolines[11] = 1.4  # can't kill this one or divide by zero.
-        fitpars_nolines[12] = 0.1
+
+        ############################################################################
+        ############################################################################
+        #fitpars_nolines[9:19] = 0. # Should be 21 with lya? MDR 2022/05/31 - Yes setting lines = 0 for continuum model?
+
+        # THE SECOND INDEX IN THE BELOW LINE MUST BE EQUAL TO THE VALUE OF 'first_node_index' IN FITTING.PY # MDR 2022/06/03
+        #first_line_index = 6
+        #first_node_index = 25 # This must be one larger than last line parameter index.
+        first_line_index, first_node_index = get_fitpar_indices()
+        fitpars_nolines[first_line_index:first_node_index] = 0. # MDR 2022/06/03 # UPDATE THESE THREE LINES ONCE FITTING.PY REFACTORING IS COMPLETE. MDR 2022/06/01
+        #ratio_indices = get_ratio_indices()
+        for idx in get_ratio_indices():
+            fitpars_nolines[idx] = 1.0
+        #fitpars_nolines[9] = 1.1  # can't kill this one or divide by zero.
+        #fitpars_nolines[20]= 1.4  # can't kill this one or divide by zero.
+        #fitpars_nolines[12] = 0.1 # UPDATE THESE THREE LINES ONCE FITTING.PY REFACTORING IS COMPLETE. MDR 2022/06/01
+        ############################################################################
+        ############################################################################
+
         fitmodel = emissionline_model(fitpars, np.ma.compressed(
             masked_spec_lam)) * fitresults['fit_scale_factor']
         contmodel = emissionline_model(fitpars_nolines, np.ma.compressed(
@@ -747,30 +762,30 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         full_contmodel = np.ma.masked_where(
             np.ma.getmask(spec_val), full_contmodel)
         # measured S/N # M.D.R 01/06/2021 added lya
-        snr_meas_array = np.array([fitresults['lya_flux'] /
-                                   fitresults['lya_error'],
-                                   fitresults['oii_flux'] /
-                                   fitresults['oii_error'],
-                                   fitresults['hg_flux'] /
-                                   fitresults['hg_error'],
-                                   fitresults['hb_flux'] /
-                                   fitresults['hb_error'],
-                                   fitresults['oiii_flux'] /
-                                   fitresults['oiii_error'],
-                                   fitresults['hanii_flux'] /
-                                   fitresults['hanii_error'],
-                                   fitresults['sii_flux'] /
-                                   fitresults['sii_error'],
-                                   fitresults['siii_9069_flux'] /
-                                   fitresults['siii_9069_error'],
-                                   fitresults['siii_9532_flux'] /
-                                   fitresults['siii_9532_error'],
-                                   fitresults['hei_flux'] /
-                                   fitresults['hei_error']])
+        snr_meas_array = np.array([fitresults['la_1216_flux'] /
+                                   fitresults['la_1216_error'],
+                                   fitresults['o2_flux'] /
+                                   fitresults['o2_error'],
+                                   fitresults['hg_4342_flux'] /
+                                   fitresults['hg_4342_error'],
+                                   fitresults['hb_4863_flux'] /
+                                   fitresults['hb_4863_error'],
+                                   fitresults['o3_5007_flux'] /
+                                   fitresults['o3_5007_error'],
+                                   fitresults['han2_flux'] /
+                                   fitresults['han2_error'],
+                                   fitresults['s2_flux'] /
+                                   fitresults['s2_error'],
+                                   fitresults['s3_9069_flux'] /
+                                   fitresults['s3_9069_error'],
+                                   fitresults['s3_9532_flux'] /
+                                   fitresults['s3_9532_error'],
+                                   fitresults['he10830_flux'] /
+                                   fitresults['he10830_error']])
 
-        #### calculate the significance of the other lines that are not  oiii.
-        signal_lines = np.array([fitresults['oii_flux'], fitresults['hg_flux'], fitresults['hb_flux'], fitresults['hanii_flux'], fitresults['sii_flux']])
-        err_lines = np.array([fitresults['oii_error'], fitresults['hg_error'], fitresults['hb_error'], fitresults['hanii_error'], fitresults['sii_error']])
+        #### calculate the significance of the other lines that are not oiii.
+        signal_lines = np.array([fitresults['o2_flux'], fitresults['hg_4342_flux'], fitresults['hb_4863_flux'], fitresults['han2_flux'], fitresults['s2_flux']])
+        err_lines = np.array([fitresults['o2_error'], fitresults['hg_4342_error'], fitresults['hb_4863_error'], fitresults['han2_error'], fitresults['s2_error']])
 
         w=np.where(signal_lines > 0)
         snr_tot_others = np.sum(signal_lines[w]) / np.sqrt(np.sum(err_lines[w]**2))
@@ -1754,10 +1769,10 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         cat.write('#26 hb_err \n')
         cat.write('#27 hb_EW_obs \n')
         cat.write('#28 hb_contam \n')
-        cat.write('#29 oiii_flux [both lines] \n')
-        cat.write('#30 oiii_err [both lines] \n')
-        cat.write('#31 oiii_EW_obs [both lines] \n')
-        cat.write('#32 oiii_contam [both lines] \n')
+        cat.write('#29 oiii_flux\n')
+        cat.write('#30 oiii_err\n')
+        cat.write('#31 oiii_EW_obs\n')
+        cat.write('#32 oiii_contam\n')
         cat.write('#33 hanii_flux \n')
         cat.write('#34 hanii_err \n')
         cat.write('#35 hanii_EW_obs \n')
@@ -1801,50 +1816,50 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>8.4f}'.format(fitresults['redshift']) + \
         '{:>10.4f}'.format(fitresults['redshift_err']) +\
         '{:>10.4f}'.format(snr_tot_others) +\
-        '{:>10.4f}'.format(fitresults['oiii_5007_dz'])  + \
-        '{:>10.4f}'.format(fitresults['oii_3727_dz'])   + \
-        '{:>10.4f}'.format(fitresults['siii_hei_dz']) +\
+        '{:>10.4f}'.format(fitresults['o3_5007_dz'])  + \
+        '{:>10.4f}'.format(fitresults['o2_3727_dz'])   + \
+        '{:>10.4f}'.format(fitresults['s3_he_dz']) +\
         '{:>10.2f}'.format(fitresults['fwhm_g141']) + \
         '{:>10.2f}'.format(fitresults['fwhm_g141_err'])  +  \
-        '{:>13.2e}'.format(fitresults['oii_flux'])  + \
-        '{:>13.2e}'.format(fitresults['oii_error']) +  \
-        '{:>13.2e}'.format(fitresults['oii_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['o2_flux'])  + \
+        '{:>13.2e}'.format(fitresults['o2_error']) +  \
+        '{:>13.2e}'.format(fitresults['o2_ew_obs']) +\
         '{:>6d}'.format(contamflags['o2']) +\
-        '{:>13.2e}'.format(fitresults['hg_flux']) +\
-        '{:>13.2e}'.format(fitresults['hg_error']) + \
-        '{:>13.2e}'.format(fitresults['hg_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['hg_4342_flux']) +\
+        '{:>13.2e}'.format(fitresults['hg_4342_error']) + \
+        '{:>13.2e}'.format(fitresults['hg_4342_ew_obs']) +\
         '{:>6d}'.format(contamflags['hg']) +\
-        '{:>13.2e}'.format(fitresults['hb_flux']) + \
-        '{:>13.2e}'.format(fitresults['hb_error']) + \
-        '{:>13.2e}'.format(fitresults['hb_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['hb_4863_flux']) + \
+        '{:>13.2e}'.format(fitresults['hb_4863_error']) + \
+        '{:>13.2e}'.format(fitresults['hb_4863_ew_obs']) +\
         '{:>6d}'.format(contamflags['hb']) +\
-        '{:>13.2e}'.format(fitresults['oiii_flux']) + \
-        '{:>13.2e}'.format(fitresults['oiii_error']) + \
-        '{:>13.2e}'.format(fitresults['oiii_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['o3_5007_flux']) + \
+        '{:>13.2e}'.format(fitresults['o3_5007_error']) + \
+        '{:>13.2e}'.format(fitresults['o3_5007_ew_obs']) +\
         '{:>6d}'.format(contamflags['o3']) +\
-        '{:>13.2e}'.format(fitresults['hanii_flux']) + \
-        '{:>13.2e}'.format(fitresults['hanii_error']) + \
-        '{:>13.2e}'.format(fitresults['hanii_ew_obs']) + \
+        '{:>13.2e}'.format(fitresults['han2_flux']) + \
+        '{:>13.2e}'.format(fitresults['han2_error']) + \
+        '{:>13.2e}'.format(fitresults['han2_ew_obs']) + \
         '{:>6d}'.format(contamflags['ha']) +\
-        '{:>13.2e}'.format(fitresults['sii_flux']) + \
-        '{:>13.2e}'.format(fitresults['sii_error']) + \
-        '{:>13.2e}'.format(fitresults['sii_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['s2_flux']) + \
+        '{:>13.2e}'.format(fitresults['s2_error']) + \
+        '{:>13.2e}'.format(fitresults['s2_ew_obs']) +\
         '{:>6d}'.format(contamflags['s2']) +\
-        '{:>13.2e}'.format(fitresults['siii_9069_flux']) + \
-        '{:>13.2e}'.format(fitresults['siii_9069_error']) + \
-        '{:>13.2e}'.format(fitresults['siii_9069_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['s3_9069_flux']) + \
+        '{:>13.2e}'.format(fitresults['s3_9069_error']) + \
+        '{:>13.2e}'.format(fitresults['s3_9069_ew_obs']) +\
         '{:>6d}'.format(contamflags['s31']) +\
-        '{:>13.2e}'.format(fitresults['siii_9532_flux']) + \
-        '{:>13.2e}'.format(fitresults['siii_9532_error']) + \
-        '{:>13.2e}'.format(fitresults['siii_9532_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['s3_9532_flux']) + \
+        '{:>13.2e}'.format(fitresults['s3_9532_error']) + \
+        '{:>13.2e}'.format(fitresults['s3_9532_ew_obs']) +\
         '{:>6d}'.format(contamflags['s32']) +\
-        '{:>13.2e}'.format(fitresults['hei_flux']) + \
-        '{:>13.2e}'.format(fitresults['hei_error']) + \
-        '{:>13.2e}'.format(fitresults['hei_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['he10830_flux']) + \
+        '{:>13.2e}'.format(fitresults['he10830_error']) + \
+        '{:>13.2e}'.format(fitresults['he10830_ew_obs']) +\
         '{:>6d}'.format(contamflags['he1']) +\
-        '{:>13.2e}'.format(fitresults['lya_flux']) + \
-        '{:>13.2e}'.format(fitresults['lya_error']) + \
-        '{:>13.2e}'.format(fitresults['lya_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['la_1216_flux']) + \
+        '{:>13.2e}'.format(fitresults['la_1216_error']) + \
+        '{:>13.2e}'.format(fitresults['la_1216_ew_obs']) +\
         '{:>6d}'.format(contamflags['lya']) + '\n'
         #     '   ' + '{:<6d}'.format(flagcont) + ' \n' # M.D.R 01/06/2021
 
