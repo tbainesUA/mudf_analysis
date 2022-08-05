@@ -58,32 +58,116 @@ if (verbose == True):
     print(os.getcwd()) # MDR 2022/05/17
 
 #######################################################################
-# define wavelengths of lines of interest
-# this is super not the way to do this, but oh well
-# updated to exact vacuum values and sorted - M.D.R. - 10/22/2020
-lam_Lya    = 1215.670
-lam_Oii    = 3728.4835 #3727.0
-lam_Hg     = 4341.684 #4341.0
-lam_Hbeta  = 4862.683 #4861.0
-lam_Oiii_1 = 4960.295 #4959.0
-lam_Oiii_2 = 5008.240 #5007.0
-lam_Halpha = 6564.610 #6563.0
-lam_Sii    = 6725.480 #6724.0
-lam_Siii_1 = 9071.100 #9069.0
-lam_Siii_2 = 9533.200 #9532.0
-lam_He     = 10832.860 #10830.0
-# lam_Pag=10940.0
-# lam_Fe=12600.0
-# lam_Pab=12810.0
 
-#suplines = [lam_Oii, lam_Hg, lam_Hbeta, lam_Oiii_2, # M.D.R 01/06/2021
-#            lam_Halpha, lam_Sii, lam_Siii_1, lam_Siii_2, lam_He] # M.D.R 01/06/2021
-suplines = [lam_Lya, lam_Oii, lam_Hg, lam_Hbeta, lam_Oiii_2, # M.D.R 01/06/2021
-            lam_Halpha, lam_Sii, lam_Siii_1, lam_Siii_2, lam_He] # M.D.R 01/06/2021
-#suplines_str = ['[OII]', r'H$\gamma$', r'H$\beta$', '[OIII]', # M.D.R 01/06/2021
-#                r'H$\alpha$', '[SII]', '[SIII]', '[SIII]', 'HeI'] # M.D.R 01/06/2021
-suplines_str = [r'Ly$\alpha$', '[OII]', r'H$\gamma$', r'H$\beta$', '[OIII]', # M.D.R 01/06/2021
-                r'H$\alpha$', '[SII]', '[SIII]', '[SIII]', 'HeI'] # M.D.R 01/06/2021
+# Define the emission line vacuum wavelengths.
+la_1216_vac = 1215.670
+n5_1238_vac = 1238.821
+n5_1242_vac = 1242.804
+c4_1548_vac = 1548.203
+c4_1550_vac = 1550.777
+h2_1640_vac = 1640.420
+o3_1660_vac = 1660.8092
+o3_1666_vac = 1666.1497
+s3_1883_vac = 1882.707
+s3_1892_vac = 1892.030
+c3_1907_vac = 1906.680
+c3_1909_vac = 1908.730
+m2_2796_vac = 2796.352
+m2_2803_vac = 2803.531
+o2_3727_vac = 3727.092
+o2_3730_vac = 3729.875
+hg_4342_vac = 4341.684
+o3_4363_vac = 4364.436
+h2_4686_vac = 4687.020
+hb_4863_vac = 4862.683
+o3_4959_vac = 4960.295
+o3_5007_vac = 5008.240
+o1_6300_vac = 6302.046
+o1_6363_vac = 6365.536
+n2_6550_vac = 6549.850
+ha_6565_vac = 6564.610
+n2_6585_vac = 6585.280
+s2_6716_vac = 6718.290
+s2_6731_vac = 6732.670
+s3_9069_vac = 9071.100
+s3_9532_vac = 9533.200
+he10830_vac = 10832.86
+
+# Add separate flag for He II 4646 and use emission line waves in all flags to remove ambiguity.
+# Make all catalog header and data write commands loops over the 'flux_strings' variable.
+# He II flag is currently set to hb and [O III] 4363 shares flag with hg.
+
+supported_lines = [\
+la_1216_vac, n5_1238_vac, c4_1548_vac, h2_1640_vac, o3_1660_vac, s3_1883_vac, \
+c3_1907_vac, m2_2796_vac, o2_3727_vac, hg_4342_vac, o3_4363_vac, h2_4686_vac, \
+hb_4863_vac, o3_5007_vac, o1_6300_vac, ha_6565_vac, s2_6716_vac, s3_9069_vac, \
+s3_9532_vac, he10830_vac]
+
+supported_lines_strings = [\
+r'Ly$\alpha$', 'N V', 'C IV', 'He II', 'O III]', 'Si III]', \
+'C III]', 'Mg II', '[O II]', r'H$\gamma$', '[O III]', 'He II', \
+r'H$\beta$', '[O III]', '[O I]', r'H$\alpha$', '[S II]', '[S III]', \
+'[S III]', 'He I']
+
+flux_strings = [\
+'la_total', 'n5_total', 'c4_total', 'h2_1640', 'o3_total', 's3_total', \
+'c3_total', 'm2_total', 'o2_total', 'hg_4342', 'o3_4363', 'h2_4686', \
+'hb_4863', 'o3_5007', 'o1_6300', 'ha_total', 's2_total', 's3_9069', \
+'s3_9532', 'he10830']
+
+# these lines are close to their doublets so are not plotted in ax1.
+# However, their fluxes and fitresults are still saved to the catalog.
+supported_lines_extra = [\
+n5_1242_vac, c4_1550_vac, \
+o3_1666_vac, s3_1892_vac, c3_1909_vac, \
+m2_2803_vac, o2_3730_vac, o3_4959_vac, o1_6363_vac, \
+n2_6550_vac, n2_6585_vac, s2_6731_vac]
+
+# contam_flags_string = \
+# 'lya,n5,c4,he2,o3uv,s3,c3,m2,o2,hg,hb,o3,o1,ha,s2,s31,s32,he1,c(ontinuum)'
+contam_flags_string = \
+'la_1216, n5_1238, n5_1242, c4_1548, c4_1550, h2_1640, \
+o3_1660, o3_1666, s3_1883, s3_1892, c3_1907, c3_1909, \
+m2_2796, m2_2803, o2_3727, o2_3730, hg_4342, o3_4363, \
+h2_4686, hb_4863, o3_4959, o3_5007, o1_6300, o1_6363, \
+n2_6550, ha_6565, n2_6585, s2_6716, s2_6731, s3_9069, \
+s3_9532, he10830, cont'
+
+# supported_lines = [\
+# la_1216_vac, n5_1238_vac, n5_1242_vac, c4_1548_vac, c4_1550_vac, h2_1640_vac, \
+# o3_1660_vac, o3_1666_vac, s3_1883_vac, s3_1892_vac, c3_1907_vac, c3_1909_vac, \
+# m2_2796_vac, m2_2803_vac, o2_3727_vac, o2_3730_vac, hg_4342_vac, o3_4363_vac, \
+# h2_4686_vac, hb_4863_vac, o3_4959_vac, o3_5007_vac, o1_6300_vac, o1_6363_vac, \
+# n2_6550_vac, ha_6565_vac, n2_6585_vac, s2_6716_vac, s2_6731_vac, s3_9069_vac, \
+# s3_9532_vac, he10830_vac]
+#
+# supported_lines_strings = [\
+# r'Ly$\alpha$', 'N V', 'N V', 'C IV', 'C IV', 'He II', \
+# 'O III]', 'O III]', 'Si III]', 'Si III]', 'C III]', 'C III]', \
+# 'Mg II', 'Mg II', '[O II]', '[O II]', r'H$\gamma$', '[O III]', \
+# 'He II', r'H$\beta$', '[O III]', '[O III]', '[O I]', '[O I]', \
+# '[N II]', r'H$\alpha$', '[N II]', '[S II]', '', '[S III]', \
+# '[S III]', 'He I']
+#
+# flux_strings = [\
+# 'la_1216', 'n5_1238', 'n5_1242', 'c4_1548', 'c4_1550', 'h2_1640', \
+# 'o3_1660', 'o3_1666', 's3_1883', 's3_1892', 'c3_1907', 'c3_1909', \
+# 'm2_2796', 'm2_2803', 'o2_3727', 'o2_3730', 'hg_4342', 'o3_4363', \
+# 'h2_4686', 'hb_4863', 'o3_4959', 'o3_5007', 'o1_6300', 'o1_6363', \
+# 'n2_6550', 'ha_6565', 'n2_6585', 's2_6716', 's2_6731', 's3_9069', \
+# 's3_9532', 'he10830']
+#
+# supported_lines_extra_strings = [\
+# 'n5_1242', 'c4_1550', \
+# 'o3_1666', 's3_1892', 'c3_1909', \
+# 'm2_2803', 'o2_3730', 'o3_4959', 'o1_6363', \
+# 'n2_6550', 'n2_6585', 's2_6731']
+
+### Notes ###
+# expected strings from 'fitresults' are each element in the 'flux_strings' list +'_flux'.
+#update below in code, must be locally defined to reset for each object.
+#contamflags = {'lya':0, 'o2':0, 'hg':0, 'hb':0, 'o3':0, 'o1':0, 'ha':0, 's2':0, 's31':0, 's32':0, 'he1':0} # M.D.R 01/06/2021
+### Notes ###
 
 # colors to help split up terminal output
 # helpmsg = light blue
@@ -219,15 +303,12 @@ def print_help_message():
 def check_masked_lines(fitresults, snr_meas_array, spdata):
     if (verbose == True): print('Running check_masked_lines...\n') # MDR 2022/05/17
     """ """
-#    fluxstrs = ['oii','hg','hb','oiii','hanii','sii','siii_9069','siii_9532','he1']  # M.D.R 01/06/2021
-    fluxstrs = ['lya','oii','hg','hb','oiii','hanii','sii','siii_9069','siii_9532','he1']  # M.D.R 01/06/2021
-
     spec_lam = spdata[0]
 
     z = fitresults['redshift']
     fwhm = fitresults['fwhm_g141']
 
-    for i,(wave,line) in enumerate(zip(suplines,fluxstrs)):
+    for i,(wave,line) in enumerate(zip(supported_lines,flux_strings)):
         waveobs = wave * (1. + z)
         w = (spdata[1].mask[(spec_lam >= (waveobs-fwhm/2.)) & (spec_lam <= (waveobs+fwhm/2.))]).any()
         if w:
@@ -249,8 +330,8 @@ def comment_out_obj(par, obj, catalogname):
             else:
                 print '%s' % line,
 
+
 def print_prompt(prompt, prompt_type='obj'):
-    #if (verbose == True): print('Running print_prompt...\n') # MDR 2022/05/17
     print(setcolors[prompt_type] + prompt + setcolors['endc'])
 
 
@@ -258,14 +339,7 @@ def write_object_summary(par, obj, fitresults, snr_meas_array, contamflags, summ
     if (verbose == True): print('Running write_object_summary...\n') # MDR 2022/05/17
     """ """
     # string names for output
-#    linenames = np.array(['[OII]', 'Hgamma', 'Hbeta', '[OIII]', \  # M.D.R 01/06/2021
-#                          'Halpha', '[SII]', '[SIII]', '[SIII]', 'HeI'])  # M.D.R 01/06/2021
-    linenames = np.array(['Lalpha', '[OII]', 'Hgamma', 'Hbeta', '[OIII]', \
-                          'Halpha', '[SII]', '[SIII]', '[SIII]', 'HeI'])  # M.D.R 01/06/2021
-    # string names for accessing fitresults
-#    fluxstrs = ['oii','hg','hb','oiii','hanii','sii','siii_9069','siii_9532','he1']  # M.D.R 01/06/2021
-    fluxstrs = ['la_1216','o2','hg_4342','hb_4863','o3_5007','han2','s2','s3_9069','s3_9532','he10830']  # M.D.R 01/06/2021
-    linefluxes = np.array([fitresults['%s_flux'%fs] for fs in fluxstrs])
+    linefluxes = np.array([fitresults['%s_flux'%fs] for fs in flux_strings])
 
     # initial message
     msg = setcolors[summary_type] + '#'*72
@@ -275,7 +349,9 @@ def write_object_summary(par, obj, fitresults, snr_meas_array, contamflags, summ
     good_snr = np.where(snr_meas_array > 3)
     msg += '##   Lines fit with S/N > 3:\n'
     for gsnr in good_snr[0]:
-        msg += '##\t%s: Flux = %.3e    S/N = %.2f\n'%(linenames[gsnr],
+        # msg += '##\t%s: Flux = %.3e    S/N = %.2f\n'%(supported_lines_strings[gsnr],
+        #                         linefluxes[gsnr], snr_meas_array[gsnr])
+        msg += '##\t%s: Flux = %.3e    S/N = %.2f\n'%(flux_strings[gsnr],
                                 linefluxes[gsnr], snr_meas_array[gsnr])
 
     cfout = ['%s:%i'%(cf,contamflags[cf]) for cf in contamflags if contamflags[cf] > 0]
@@ -300,73 +376,126 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     # previous figures are overwritten
     """
     # the expected wavelengths of emission lines given the zguess
-    lamobs = (1 + zguess) * np.array(suplines)
+    lamobs = (1 + zguess) * np.array(supported_lines)
+    lamobs_extra = (1 + zguess) * np.array(supported_lines_extra)
 
+    # define the filename that will be used for figures.
     plotfilename = os.path.join(outdir, 'figs', '%s_fit.png' % plottitle)
 
+    # initialize the wavelength, flux, uncertainty, contamination, and zero order arrays.
     spec_lam = spdata[0]
     spec_val = spdata[1]
     spec_unc = spdata[2]
     spec_con = spdata[3]
     spec_zer = spdata[4]
+
     # apply the mask to the wavelength array
     masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
 
+    # limit the S/N array to MUSE so we can zoom-in on those lines.
+    snr_muse = snr_meas_array[np.argwhere(lamobs < config_pars['mask_region1'][0])]
+
+    # replace the occasional NaN value with zero to prevent gridspec crashes.
+    snr_muse = np.nan_to_num(snr_muse)
+
+    # determine the number of emission lines with S/N > 3.
+    num_gridspec_plots = len(np.where(snr_muse >= 3.0)[0])
+
+    # the maximum number of zoom-in plots is 7 for visibility.
+    if (num_gridspec_plots > 7): num_gridspec_plots = 7
+
+    if (verbose == True): print 'There are '+str(num_gridspec_plots)+' lines with S/N > 3.\n'
+
+    # generate the plot grid.
     plt.ion()
     fig = plt.figure(1, figsize=(11, 8), dpi=75)
     plt.clf()
-    gs = gridspec.GridSpec(3, 4)
+    # gs = gridspec.GridSpec(3, 4)
+    gs = gridspec.GridSpec(3, num_gridspec_plots+1)
     ax1 = fig.add_subplot(gs[0:2, :])
-    ax2 = fig.add_subplot(gs[2:, 1:3]) # ax2 = fig.add_subplot(gs[2:, :]) - M.D.R. - 10/22/2020 - decreased width to add room for 2 zoom plots.
-    ax3 = fig.add_subplot(gs[2:, 0:1]) # - M.D.R. - 10/22/2020 - add lower left panel zoomed in on strongest blue line.
-    ax4 = fig.add_subplot(gs[2:, 3:4]) # - M.D.R. - 10/22/2020 - add lower left panel zoomed in on strongest red line.
+    ax2 = fig.add_subplot(gs[2:, 0:1])
 
-    xmin = np.ma.min(spec_lam) - 50.0 # 200.0 - M.D.R. - 10/22/2020
-    xmax = np.ma.max(spec_lam) + 50.0 # 200.0 - M.D.R. - 10/22/2020
-    ymin = np.ma.min(spec_val)
-    ymax = 1.2 * np.ma.max(spec_val) # ymax = 1.5 * np.ma.max(spec_val) # - M.D.R. - 10/22/2020
-    #print('xmin/max, ymin/max =', xmin, xmax, ymin, ymax) # M.D.R 01/27/2021
+    if (num_gridspec_plots == 1):
+        ax3 = fig.add_subplot(gs[2:, 1:2])
+        all_ax = [ax1, ax2, ax3]
+    elif (num_gridspec_plots == 2):
+        ax3 = fig.add_subplot(gs[2:, 1:2])
+        ax4 = fig.add_subplot(gs[2:, 2:3])
+        all_ax = [ax1, ax2, ax3, ax4]
+    elif (num_gridspec_plots == 3):
+        ax3 = fig.add_subplot(gs[2:, 1:2])
+        ax4 = fig.add_subplot(gs[2:, 2:3])
+        ax5 = fig.add_subplot(gs[2:, 3:4])
+        all_ax = [ax1, ax2, ax3, ax4, ax5]
+    elif (num_gridspec_plots == 4):
+        ax3 = fig.add_subplot(gs[2:, 1:2])
+        ax4 = fig.add_subplot(gs[2:, 2:3])
+        ax5 = fig.add_subplot(gs[2:, 3:4])
+        ax6 = fig.add_subplot(gs[2:, 4:5])
+        all_ax = [ax1, ax2, ax3, ax4, ax5, ax6]
+    elif (num_gridspec_plots == 5):
+        ax3 = fig.add_subplot(gs[2:, 1:2])
+        ax4 = fig.add_subplot(gs[2:, 2:3])
+        ax5 = fig.add_subplot(gs[2:, 3:4])
+        ax6 = fig.add_subplot(gs[2:, 4:5])
+        ax7 = fig.add_subplot(gs[2:, 5:6])
+        all_ax = [ax1, ax2, ax3, ax4, ax5, ax6, ax7]
+    elif (num_gridspec_plots == 6):
+        ax3 = fig.add_subplot(gs[2:, 1:2])
+        ax4 = fig.add_subplot(gs[2:, 2:3])
+        ax5 = fig.add_subplot(gs[2:, 3:4])
+        ax6 = fig.add_subplot(gs[2:, 4:5])
+        ax7 = fig.add_subplot(gs[2:, 5:6])
+        ax8 = fig.add_subplot(gs[2:, 6:7])
+        all_ax = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8]
+    elif (num_gridspec_plots >= 7):
+        ax3 = fig.add_subplot(gs[2:, 1:2])
+        ax4 = fig.add_subplot(gs[2:, 2:3])
+        ax5 = fig.add_subplot(gs[2:, 3:4])
+        ax6 = fig.add_subplot(gs[2:, 4:5])
+        ax7 = fig.add_subplot(gs[2:, 5:6])
+        ax8 = fig.add_subplot(gs[2:, 6:7])
+        ax9 = fig.add_subplot(gs[2:, 7:8])
+        all_ax = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9]
+    else:
+        all_ax = [ax1, ax2]
 
-    ax1.plot(spec_lam, spec_val, 'k', spec_lam, spec_con, 'hotpink', ls='steps')
+    xmin = np.ma.min(spec_lam) - 10.0 # 200.0 - M.D.R. - 10/22/2020
+    xmax = np.ma.max(spec_lam) + 10.0 # 200.0 - M.D.R. - 10/22/2020
+    ymin = -0.2 * np.ma.max(spec_val)
+    ymax = 1.2 * np.ma.max(spec_val)
+
+    lw_data = 2.0
+    lw_fits = 1.75
+
+    ax1.plot(spec_lam, spec_val, 'k', spec_lam, spec_con, 'hotpink', ls='steps', lw=lw_data)
     ax1.axvline(x=config_pars['transition_wave'], c='c', linestyle=':', lw=3)
 
     # transforms for plotting in data and axes coordinates
-    ax1trans = mtransforms.blended_transform_factory(
-        ax1.transData, ax1.transAxes)
-    ax2trans = mtransforms.blended_transform_factory(
-        ax2.transData, ax2.transAxes)
-
-    ax3trans = mtransforms.blended_transform_factory(
-        ax3.transData, ax3.transAxes) # - M.D.R. - 10/22/2020
-    ax4trans = mtransforms.blended_transform_factory(
-        ax4.transData, ax4.transAxes) # - M.D.R. - 10/22/2020
+    ax1trans = mtransforms.blended_transform_factory(ax1.transData, ax1.transAxes)
+    ax2trans = mtransforms.blended_transform_factory(ax2.transData, ax2.transAxes)
 
     # contamination model
-    ax1.fill_between(spec_lam, spec_con, -1, color='#ff69b4', alpha=0.1,
-                     step='pre')
+    ax1.fill_between(spec_lam, spec_con, -1, color='#ff69b4', alpha=0.1, step='pre')
 
     # plot observed wavelengths of all the possible lines.
-    for li, lstring, sn_meas in zip(lamobs, suplines_str, snr_meas_array):
+    for li, lstring, sn_meas in zip(lamobs, supported_lines_strings, snr_meas_array):
         if (li > xmin + 100) & (li < xmax - 100):
-            for ax in [ax1, ax2, ax3, ax4]: # for ax in [ax1, ax2]: # - M.D.R. - 10/22/2020
-                ax.axvline(x=li, color='b')
-            stringplot = lstring + '   (' + str(round(sn_meas, 2)) + ')'
+            for ax in all_ax: #[ax1, ax2, ax3, ax4]: # for ax in [ax1, ax2]: # - M.D.R. - 10/22/2020
+                if (ax != ax2): # skip s/n plot.
+                    ax.axvline(x=li, color='b')
+                    # add blue lines for close doublets without text label.
+                    # for li in lamobs_extra:
+                    #     if (li > xmin + 1) & (li < xmax - 1):
+                    #         ax.axvline(x=li, color='b', linestyle='--')
+                    #
+            stringplot = lstring + '  (' + str(round(sn_meas, 1)) + ') '
+
             # use data coordinates for x-axis and axes coords for y-axis
-            ax1.text(li, 0.85, stringplot, rotation='vertical',
-                     ha='right', fontsize='16', transform=ax1trans)
-            ax3.text(li, 0.85, stringplot, rotation='vertical',
-                     ha='right', fontsize='16', transform=ax1trans) # - M.D.R. - 10/22/2020
-            ax4.text(li, 0.85, stringplot, rotation='vertical',
-                     ha='right', fontsize='16', transform=ax1trans) # - M.D.R 01/07/2021
-    # add just the line for [OIII]4959
-    lamobs_o32 = (1 + zguess) * np.array([lam_Oiii_1])
-    if (lamobs_o32 > xmin + 100) & (lamobs_o32 < xmax - 100):
-        for ax in [ax1, ax2, ax3, ax4]: # for ax in [ax1, ax2]: # - M.D.R. - 10/22/2020
-            ax.axvline(x=lamobs_o32, color='b')
+            ax1.text(li, 0.96, stringplot, rotation='vertical', ha='right', fontsize='16', transform=ax1trans)
 
-
-    ax1.plot(spec_lam, full_fitmodel, color='r', lw=1.5)
-    ax1.plot(spec_lam, full_contmodel, color='b', linestyle='--', lw=1.5)
+    ax1.plot(spec_lam, full_fitmodel, color='r', lw=lw_fits)
+    ax1.plot(spec_lam, full_contmodel, color='b', linestyle='--', lw=lw_fits)
 
     # plot 0th orders
     w = np.where(spec_zer == 3)
@@ -392,19 +521,17 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     # plot any masked regions
     for mr in ['mask_region1', 'mask_region2', 'mask_region3']:
         if (config_pars[mr][0] != 0.) & (config_pars[mr][1] != 0.):
-            for ax in [ax1, ax2]:
-                trans = mtransforms.blended_transform_factory(
-                    ax.transData, ax.transAxes)
+            for ax in all_ax:#[ax1, ax2]:
+                trans = mtransforms.blended_transform_factory(ax.transData, ax.transAxes)
                 handles, labels = ax.get_legend_handles_labels()
                 if 'masked regions' in labels:
                     maskedlabel = None
                 else:
                     maskedlabel = 'masked regions'
-                ax.fill_between(config_pars[mr], 0, 1, color='grey',
-                                alpha=0.3, transform=trans, label=maskedlabel)
+                ax.fill_between(config_pars[mr], 0, 1, color='grey', alpha=0.3, transform=trans, label=maskedlabel)
     handles, labels = ax.get_legend_handles_labels()
     if len(labels) > 0:
-        ax1.legend(bbox_to_anchor=[1.05, 1.15], loc='upper right')
+        ax1.legend(bbox_to_anchor=[1.0, 1.08], loc='upper right')
 
     # find values of spec_lam nearest to the nodes
     nodelam = config_pars['node_wave']
@@ -431,11 +558,12 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
         np.argmin(np.abs(np.ma.compressed(masked_spec_lam) - current_lam))]
     ax1.plot(current_lam, current_cont, 'ro', ms=10)
 
-    ax1.set_ylabel(
-        r'F$_\lambda$ erg s$^{-1}$ cm$^{-2}$ $\AA^{-1}$', size='xx-large')
+    ax1.set_xlabel('Observed Wavelength ($\AA$)', size='xx-large')
+    #ax1.set_ylabel(r'F$_\lambda$ erg s$^{-1}$ cm$^{-2}$ $\AA^{-1}$', size='xx-large')
+    ax1.set_ylabel('Flux (erg s$^{-1}$ cm$^{-2}$ $\AA^{-1}$)', size='xx-large')
     ax1.set_xlim([xmin, xmax])
     ax1.set_ylim([ymin, ymax])
-    ax1.set_title(plottitle)
+    ax1.set_title(plottitle, size='xx-large')
 
     # second panel for s/n
     s2n = (spec_val - full_contmodel) / spec_unc
@@ -443,15 +571,17 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     mask = np.logical_and(s2n > -10000., s2n < 10000.)
     s2n = s2n[mask]
     s2n_lam = s2n_lam[mask]
-    ax2.plot(s2n_lam, s2n, 'k-', linestyle='steps')
-    ymin = s2n.min()
+    ax2.plot(s2n_lam, s2n, 'k-', linestyle='steps', lw=lw_data)
+    #ymin = s2n.min()
+    ymin = -0.2 * s2n.max()
     ymax = 1.2 * s2n.max() #ymax = 1.5 * s2n.max() # M.D.R 01/07/2021
     ax2.axhline(y=config_pars['n_sigma_above_cont'], c='r')
-    for li in lamobs:
-        ax2.axvline(x=li, color='b')
+    # for li in lamobs:
+    #     ax2.axvline(x=li, color='b')
     ax2.axvline(x=config_pars['transition_wave'], c='c', linestyle=':', lw=3)
-    ax2.set_xlabel(r'$\lambda$ ($\AA$)', size='xx-large')
-    ax2.set_ylabel(r'S/N', size='xx-large')
+    #ax2.set_xlabel(r'$\lambda$ ($\AA$)', size='xx-large')
+    #ax2.set_ylabel(r'S/N', size='xx-large')
+    ax2.set_title(r'S/N', size='xx-large')
     ax2.set_xlim([xmin, xmax])
     ax2.set_ylim(ymin, ymax)
     # fig = plt.gcf() a
@@ -464,65 +594,136 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     #print('snr_meas_array =', snr_meas_array)  # M.D.R 01/27/2021
     #print(np.max(snr_meas_array)) # M.D.R 01/27/2021
     #print(np.argmax(snr_meas_array)) # M.D.R 01/27/2021
-    lamobs_maxsnr = lamobs[np.argmax(snr_meas_array)]
+    #lamobs_maxsnr = lamobs[np.argmax(snr_meas_array)]
     lamobs_blue = lamobs[np.argwhere(lamobs < config_pars['mask_region1'][0])]
-    lamobs_red = lamobs[np.argwhere(lamobs > config_pars['mask_region1'][1])]
-    #print('lamobs_blue, lamobs_red =', lamobs_blue, lamobs_red) # M.D.R 01/27/2021
-    snr_meas_array_blue = snr_meas_array[np.argwhere(lamobs < config_pars['mask_region1'][0])]
-    snr_meas_array_red = snr_meas_array[np.argwhere(lamobs > config_pars['mask_region1'][1])] #changed to 1.
-    #print('snr_meas_array_blue, snr_meas_array_red =', snr_meas_array_blue, snr_meas_array_red) # M.D.R 01/27/2021
+    #lamobs_red = lamobs[np.argwhere(lamobs > config_pars['mask_region1'][1])]
 
-    #print('\ntest if arrays are empty\n')
-    if len(lamobs_blue) == 0:
-        #print('bluelist empty')
-        lamobs_maxsnr_blue = 0.0
-        lamobs_maxsnr_blue_peak = 0.0
-    elif len(lamobs_blue) > 0:
-        #print('blue list exists')
-        lamobs_maxsnr_blue = lamobs_blue[np.argmax(snr_meas_array_blue)]
-        lamobs_maxsnr_blue_peak = min(enumerate(spec_lam), key = lambda x: abs(lamobs_maxsnr_blue - x[1]))[0]
+    # DEFINE FUNCTION FOR ADDING EMISSION LINE LABELS TO ZOOM-IN PLOTS.
+    def add_line_labels(ax, axtrans, xmin, xmax):
+        #if (verbose == True): print 'Calling add_line_labels()...\n'
+        for li, lstring, sn_meas in zip(lamobs, supported_lines_strings, snr_meas_array):
+            if (li > xmin + 1) & (li < xmax - 1):
+                ax.axvline(x=li, color='b')
+                stringplot = lstring + '  (' + str(round(sn_meas, 1)) + ') '
+                # use data coordinates for x-axis and axes coords for y-axis
+                ax.text(li, 0.92, stringplot, ha='right', fontsize='14', transform=axtrans)
+                #ax.set_title(stringplot, fontsize='14')
+        return 'Added line label to', str(ax)
 
-    if len(lamobs_red) == 0:
-        #print('redlist empty')
-        lamobs_maxsnr_red = 0.0
-        lamobs_maxsnr_red_peak = 0.0
-    elif len(lamobs_red) > 0:
-        #print('red list exists')
-        lamobs_maxsnr_red = lamobs_red[np.argmax(snr_meas_array_red)]
-        lamobs_maxsnr_red_peak = min(enumerate(spec_lam), key = lambda x: abs(lamobs_maxsnr_red - x[1]))[0]
+    def add_extra_lines(ax, axtrans, xmin, xmax):
+        #if (verbose == True): print 'Calling add_extra_lines()...\n'
+        for li in lamobs_extra:
+            if (li > xmin + 1) & (li < xmax - 1):
+                ax.axvline(x=li, color='b')#, linestyle='--')
+                #stringplot = lstring + '  (' + str(round(sn_meas, 1)) + ') '
+                # use data coordinates for x-axis and axes coords for y-axis
+                #ax.text(li, 0.92, stringplot, ha='right', fontsize='14', transform=axtrans)
+                #ax.set_title(stringplot, fontsize='14')
+        return 'Added line label to', str(ax)
 
-    #print('lamobs_maxsnr_blue, lamobs_maxsnr_red =', lamobs_maxsnr_blue, lamobs_maxsnr_red)
-    #print('lamobs_maxsnr_blue_peak, lamobs_maxsnr_red_peak =', lamobs_maxsnr_blue_peak, lamobs_maxsnr_red_peak)
+    # array of the indices for lines with s/n > 3 from strongest to weakest.
+    snr_muse_idx = np.flip(np.argsort(snr_muse, axis=0))
 
-    ax3.plot(spec_lam, spec_val)
-    ax4.plot(spec_lam, spec_val)
+    # loop over lines with s/n > 3 and create zoom-in plots.
+    for x in range(num_gridspec_plots+1):
+        #print 'x =', x
+        if (snr_muse[snr_muse_idx[x]][0] >= 3.0):
 
-    #if (lamobs_maxsnr < config_pars['transition_wave']):
-    #    print('Strongest line in BLUE.')
-    if lamobs_maxsnr_blue !=0.0 and lamobs_maxsnr_blue > config_pars['lambda_min']: # M.D.R 01/13/2021
-        #print('YES BLUE')
-        ax3.set_xlim([lamobs_maxsnr_blue-60., lamobs_maxsnr_blue+60.])
-        ax3.set_ylim([-1.0e-19, 1.2*np.max(spec_val[lamobs_maxsnr_blue_peak-60:lamobs_maxsnr_blue_peak+60])])
-    elif lamobs_maxsnr_blue == 0.0 or lamobs_maxsnr_blue < config_pars['lambda_min']: # M.D.R 01/13/2021
-        #print('NO BLUE')
-        ax3.set_xlim(0, 1)
-        ax3.set_ylim(0, 1.0e-20)
+            idx_i = snr_muse_idx[x][0]
+            snr_i = snr_muse[snr_muse_idx[x]][0][0]
+            lam_i = lamobs_blue[snr_muse_idx[x]][0][0]
+            # print 'idx_i = ', idx_i
+            # print 'snr_i = ', snr_i
+            # print 'lam_i = ', lam_i
 
-    #elif (lamobs_maxsnr > config_pars['transition_wave']):
-    #    print('Strongest line in RED.')
-    if lamobs_maxsnr_red !=0.0:
-        ax4.set_xlim([lamobs_maxsnr_red-400., lamobs_maxsnr_red+400.])
-        ax4.set_ylim([-0.5e-19, 1.2*np.max(spec_val[lamobs_maxsnr_red_peak-5:lamobs_maxsnr_red_peak+5])])
-    elif lamobs_maxsnr_red == 0.0: # M.D.R 01/06/2021
-        ax4.set_xlim(0, 1)
-        ax4.set_ylim(0, 1.0e-20)
+            # the wavelength array index corresponding to the detected line wavelength.
+            snr_muse_idy = min(enumerate(spec_lam), key = lambda x: abs(lam_i - x[1]))[0]
+            # half-width of zoom-in plots in angstroms
+            half_xrange_ang = 30
+            # half-width of zoom-in plots in pixels
+            half_xrange_pix = int((half_xrange_ang / config_pars['dispersion_blue']))
 
-    ax3.plot(spec_lam, full_fitmodel, color='r', lw=1.5)
-    ax3.plot(spec_lam, full_contmodel, color='b', linestyle='--', lw=1.5)
+            xmin = lam_i-half_xrange_ang
+            xmax = lam_i+half_xrange_ang
 
-    ax4.plot(spec_lam, full_fitmodel, color='r', lw=1.5)
-    ax4.plot(spec_lam, full_contmodel, color='b', linestyle='--', lw=1.5)
-    # - M.D.R. - 10/22/2020
+            #ymin = -0.05*1.2*np.max(spec_val[snr_muse_idy-half_xrange_pix:snr_muse_idy+half_xrange_pix])
+            # update to a sigma rejected min?
+            ymin = 0.9*np.min(spec_val[snr_muse_idy-half_xrange_pix:snr_muse_idy+half_xrange_pix])
+            ymax = 1.2*np.max(spec_val[snr_muse_idy-half_xrange_pix:snr_muse_idy+half_xrange_pix])
+
+            if (x == 0):
+                ax3trans = mtransforms.blended_transform_factory(ax3.transData, ax3.transAxes)
+                ax3.plot(spec_lam, spec_val, 'k', lw=lw_data)
+                ax3.plot(spec_lam, full_fitmodel, color='r', lw=lw_fits)
+                ax3.plot(spec_lam, full_contmodel, color='b', linestyle='--', lw=lw_fits)
+                ax3.set_xlim([xmin, xmax])
+                ax3.set_ylim([ymin, ymax])
+                add_line_labels(ax3, ax3trans, xmin, xmax)
+                add_extra_lines(ax3, ax3trans, xmin, xmax)
+            elif (x == 1):
+                ax4trans = mtransforms.blended_transform_factory(ax4.transData, ax4.transAxes)
+                ax4.plot(spec_lam, spec_val, 'k', lw=lw_data)
+                ax4.plot(spec_lam, full_fitmodel, color='r', lw=lw_fits)
+                ax4.plot(spec_lam, full_contmodel, color='b', linestyle='--', lw=lw_fits)
+                ax4.set_xlim([xmin, xmax])
+                ax4.set_ylim([ymin, ymax])
+                add_line_labels(ax4, ax4trans, xmin, xmax)
+                add_extra_lines(ax4, ax4trans, xmin, xmax)
+            elif (x == 2):
+                ax5trans = mtransforms.blended_transform_factory(ax5.transData, ax5.transAxes)
+                ax5.plot(spec_lam, spec_val, 'k', lw=lw_data)
+                ax5.plot(spec_lam, full_fitmodel, color='r', lw=lw_fits)
+                ax5.plot(spec_lam, full_contmodel, color='b', linestyle='--', lw=lw_fits)
+                ax5.set_xlim([xmin, xmax])
+                ax5.set_ylim([ymin, ymax])
+                add_line_labels(ax5, ax5trans, xmin, xmax)
+                add_extra_lines(ax5, ax5trans, xmin, xmax)
+            elif (x == 3):
+                ax6trans = mtransforms.blended_transform_factory(ax6.transData, ax6.transAxes)
+                ax6.plot(spec_lam, spec_val, 'k', lw=lw_data)
+                ax6.plot(spec_lam, full_fitmodel, color='r', lw=lw_fits)
+                ax6.plot(spec_lam, full_contmodel, color='b', linestyle='--', lw=lw_fits)
+                ax6.set_xlim([xmin, xmax])
+                ax6.set_ylim([ymin, ymax])
+                add_line_labels(ax6, ax6trans, xmin, xmax)
+                add_extra_lines(ax6, ax6trans, xmin, xmax)
+            elif (x == 4):
+                ax7trans = mtransforms.blended_transform_factory(ax7.transData, ax7.transAxes)
+                ax7.plot(spec_lam, spec_val, 'k', lw=lw_data)
+                ax7.plot(spec_lam, full_fitmodel, color='r', lw=lw_fits)
+                ax7.plot(spec_lam, full_contmodel, color='b', linestyle='--', lw=lw_fits)
+                ax7.set_xlim([xmin, xmax])
+                ax7.set_ylim([ymin, ymax])
+                add_line_labels(ax7, ax7trans, xmin, xmax)
+                add_extra_lines(ax7, ax7trans, xmin, xmax)
+            elif (x == 5):
+                ax8trans = mtransforms.blended_transform_factory(ax8.transData, ax8.transAxes)
+                ax8.plot(spec_lam, spec_val, 'k', lw=lw_data)
+                ax8.plot(spec_lam, full_fitmodel, color='r', lw=lw_fits)
+                ax8.plot(spec_lam, full_contmodel, color='b', linestyle='--', lw=lw_fits)
+                ax8.set_xlim([xmin, xmax])
+                ax8.set_ylim([ymin, ymax])
+                add_line_labels(ax8, ax8trans, xmin, xmax)
+                add_extra_lines(ax8, ax8trans, xmin, xmax)
+            elif (x == 6):
+                ax9trans = mtransforms.blended_transform_factory(ax9.transData, ax9.transAxes)
+                ax9.plot(spec_lam, spec_val, 'k', lw=lw_data)
+                ax9.plot(spec_lam, full_fitmodel, color='r', lw=lw_fits)
+                ax9.plot(spec_lam, full_contmodel, color='b', linestyle='--', lw=lw_fits)
+                ax9.set_xlim([xmin, xmax])
+                ax9.set_ylim([ymin, ymax])
+                add_line_labels(ax9, ax9trans, xmin, xmax)
+                add_extra_lines(ax9, ax9trans, xmin, xmax)
+            else:
+                print 'Failed to set XY limits.'
+
+            # try:
+            #     print 'eval(ax+str(x+3)) = ', eval('ax'+str(x+3))
+            #     eval('ax'+str(x+3)).set_xlim([lam_i-15, lam_i+15])
+            #     eval('ax'+str(x+3)).set_ylim([-0.2*1.2*np.max(spec_val[lam_i-15:lam_i+15]), 1.2*np.max(spec_val[lam_i-15:lam_i+15])])
+            # except:
+            #     print '\nFailed to set XY limits.'
+            #     pass
 
     if zset is None:
         addtext = 'In progress (z = {:.4f}'.format(zfit) +  ', ' + 'wSNR = {:.2f})'.format(snr_tot_others)
@@ -534,7 +735,7 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
         addtext = 'Accepted (z = {:.4f}'.format(zfit) +  ', ' + 'wSNR = {:.2f})'.format(snr_tot_others)
         addtextcolor = 'green'
 
-    fig.text(0.3, 0.93, addtext, ha='right', va='bottom', color=addtextcolor,
+    fig.text(0.3, 0.96, addtext, ha='right', va='bottom', color=addtextcolor,
              fontsize=18, fontweight=500,
              path_effects=[PathEffects.withStroke(linewidth=0.5,foreground="k")])
 
@@ -547,7 +748,8 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
 
 def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zeros, g141zeros, linelistoutfile, commentsfile, remaining, allobjects, show_dispersed=True, stored_fits = False, path_to_wisp_data = ' '):
     if (verbose == True): print('Running inspect_object...\n') # MDR 2022/05/17
-    """An attempt to move all object-specific tasks
+    """
+    An attempt to move all object-specific tasks
     """
     # set up and filenames
     outdir = 'Par%s_output_%s'%(par,user)
@@ -557,7 +759,8 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
     else :
         specnameg102 = path_to_wisp_data + '/Par' + str(par) + '/Spectra/MU1_%i_G102.1D.dat' % (obj)
         specnameg141 = path_to_wisp_data + '/Par' + str(par) + '/Spectra/MU1_%i_G141.1D.dat' % (obj)
-    plottitle = 'Par%i_%i' % (par, obj) # plottitle = 'Par%i_BEAM_%i' % (par, obj) - M.D.R. - 10/08/2020
+    #plottitle = 'Par%i_%i' % (par, obj) # plottitle = 'Par%i_BEAM_%i' % (par, obj) - M.D.R. - 10/08/2020
+    plottitle = 'mudf_%i' % (obj)
     fitdatafilename = os.path.join(outdir, 'fitdata/%s_fitspec' % plottitle)
     # read in 1D spectrum
     availgrism = ''
@@ -664,9 +867,17 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
     lamlines_found = lamlines_found[s[::-1]]
     index_of_strongest_line = 0
     lamline = lamlines_found[index_of_strongest_line]
-    zguess = lamline / lam_Halpha - 1
+
+    ###
+    # MDR 2022/06/10 - Changed the first guess line to [O II] for MUSE.
+    #zguess = lamline / ha_6565_vac - 1
+    zguess = lamline / ((o2_3727_vac + o2_3730_vac) / 2.0) - 1.0
     # fwhm is defined for the red side, regardless of where line is
+    # MDR 2022/06/10 - the fwhm_guess is almost always too large for MUSE so use sigma instead of fwhm.
+    #fwhm_guess = a_image * config_pars['dispersion_red']
+    # MDR 2022/07/11 - I was using a red dispersion too large by 2.1x b/c Nor's data is super sampled so return to fwhm.
     fwhm_guess = 2.35 * a_image * config_pars['dispersion_red']
+    ###
 
 
     if stored_fits != False:
@@ -685,7 +896,6 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             ### config pars for nodes can also be entered here.
 
 
-
 ### replace this with printouts from pickle files
 
     # print object info to screen
@@ -699,18 +909,31 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
     comment = ''
 #    contamflags = {'o2':0, 'hg':0, 'hb':0, 'o3':0, 'ha':0, 's2':0, 's31':0, \
                    #'s32':0, 'he1':0} # M.D.R 01/06/2021
-    contamflags = {'lya':0, 'o2':0, 'hg':0, 'hb':0, 'o3':0, 'ha':0, 's2':0, \
-                   's31':0, 's32':0, 'he1':0} # M.D.R 01/06/2021
+    # set this to loop over flags created at top of code.
+    # contamflags = {'lya':0, 'n5':0, 'c4':0, 'he2':0, 'o3uv':0, 's3':0, 'c3':0, \
+    # 'm2':0, 'o2':0, 'hg':0, 'hb':0, 'o3':0, 'o1':0, 'ha':0, 's2':0, 's31':0, \
+    # 's32':0, 'he1':0} # M.D.R 01/06/2021
+
+    contamflags = {\
+    'la_1216':0, 'n5_1238':0, 'n5_1242':0, 'c4_1548':0, 'c4_1550':0, 'h2_1640':0, \
+    'o3_1660':0, 'o3_1666':0, 's3_1883':0, 's3_1892':0, 'c3_1907':0, 'c3_1909':0, \
+    'm2_2796':0, 'm2_2803':0, 'o2_3727':0, 'o2_3730':0, 'hg_4342':0, 'o3_4363':0, \
+    'h2_4686':0, 'hb_4863':0, 'o3_4959':0, 'o3_5007':0, 'o1_6300':0, 'o1_6363':0, \
+    'n2_6550':0, 'ha_6565':0, 'n2_6585':0, 's2_6716':0, 's2_6731':0, 's3_9069':0, \
+    's3_9532':0, 'he10830':0, 'cont':0} # MDR 2022/07/22
+
+
     # Skip if previous fit is to be accepted
     done = 0 if rejectPrevFit else 1
+    fast_fit = False # MDR 2022/06/30 - move to configuration file?
+
     while (done == 0):
-        # sticking with the while loop to determine whether user is finished
-        # with object
+        # sticking with the while loop to determine whether user is finished with object
 
         # get spectrum for obj. do this every time because sometimes we
         # re-read with a mask or a different transition wavelength
-        spdata = trim_spec(tab_blue, tab_red, config_pars,
-                           mask_zeros=True, return_masks=True)
+        spdata = trim_spec(tab_blue, tab_red, config_pars, mask_zeros=True, return_masks=True)
+
         spec_lam = spdata[0]
         spec_val = spdata[1]
         spec_unc = spdata[2]
@@ -718,12 +941,14 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         spec_zer = spdata[4]
         mask_flg = spdata[5]
 
+        # Determine the largest extent of the object so broadening of the lines can be accounted for in the fitting. MDR 2022/06/30
+        ab_image_max = np.max([objinfo['a_image'][0], objinfo['b_image'][0]])
+
         # apply the mask to the wavelength array
         masked_spec_lam = np.ma.masked_where(np.ma.getmask(spec_val), spec_lam)
         # compress the masked arrays for fitting
-        fit_inputs = [np.ma.compressed(masked_spec_lam), np.ma.compressed(spec_val), np.ma.compressed(spec_unc), config_pars, zguess, fwhm_guess, str(obj)]
+        fit_inputs = [np.ma.compressed(masked_spec_lam), np.ma.compressed(spec_val), np.ma.compressed(spec_unc), config_pars, zguess, fwhm_guess, str(obj), ab_image_max, fast_fit]
         # parsing the input to facilitate parallel processing when fitting is done in batch mode.
-
         fitresults = fit_obj(fit_inputs)
         zfit = fitresults['redshift']
         fitpars = fitresults['fit_parameters']
@@ -732,67 +957,67 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         ############################################################################
         ############################################################################
         #fitpars_nolines[9:19] = 0. # Should be 21 with lya? MDR 2022/05/31 - Yes setting lines = 0 for continuum model?
-
         # THE SECOND INDEX IN THE BELOW LINE MUST BE EQUAL TO THE VALUE OF 'first_node_index' IN FITTING.PY # MDR 2022/06/03
-        #first_line_index = 6
-        #first_node_index = 25 # This must be one larger than last line parameter index.
         first_line_index, first_node_index = get_fitpar_indices()
         fitpars_nolines[first_line_index:first_node_index] = 0. # MDR 2022/06/03 # UPDATE THESE THREE LINES ONCE FITTING.PY REFACTORING IS COMPLETE. MDR 2022/06/01
         #ratio_indices = get_ratio_indices()
         for idx in get_ratio_indices():
             fitpars_nolines[idx] = 1.0
-        #fitpars_nolines[9] = 1.1  # can't kill this one or divide by zero.
-        #fitpars_nolines[20]= 1.4  # can't kill this one or divide by zero.
-        #fitpars_nolines[12] = 0.1 # UPDATE THESE THREE LINES ONCE FITTING.PY REFACTORING IS COMPLETE. MDR 2022/06/01
         ############################################################################
         ############################################################################
 
-        fitmodel = emissionline_model(fitpars, np.ma.compressed(
-            masked_spec_lam)) * fitresults['fit_scale_factor']
-        contmodel = emissionline_model(fitpars_nolines, np.ma.compressed(
-            masked_spec_lam)) * fitresults['fit_scale_factor']
+        fitmodel = emissionline_model(fitpars, np.ma.compressed(masked_spec_lam)) * fitresults['scl_factor']
+        contmodel = emissionline_model(fitpars_nolines, np.ma.compressed(masked_spec_lam)) * fitresults['scl_factor']
+
         # the fitting is done on compressed arrays, so we need to
         # create masked versions of the fit and continuum models
         full_fitmodel = np.zeros(spec_lam.shape, dtype=float)
         full_contmodel = np.zeros(spec_lam.shape, dtype=float)
         full_fitmodel[np.ma.nonzero(spec_val)] = fitmodel
         full_contmodel[np.ma.nonzero(spec_val)] = contmodel
-        full_fitmodel = np.ma.masked_where(
-            np.ma.getmask(spec_val), full_fitmodel)
-        full_contmodel = np.ma.masked_where(
-            np.ma.getmask(spec_val), full_contmodel)
-        # measured S/N # M.D.R 01/06/2021 added lya
-        snr_meas_array = np.array([fitresults['la_1216_flux'] /
-                                   fitresults['la_1216_error'],
-                                   fitresults['o2_flux'] /
-                                   fitresults['o2_error'],
-                                   fitresults['hg_4342_flux'] /
-                                   fitresults['hg_4342_error'],
-                                   fitresults['hb_4863_flux'] /
-                                   fitresults['hb_4863_error'],
-                                   fitresults['o3_5007_flux'] /
-                                   fitresults['o3_5007_error'],
-                                   fitresults['han2_flux'] /
-                                   fitresults['han2_error'],
-                                   fitresults['s2_flux'] /
-                                   fitresults['s2_error'],
-                                   fitresults['s3_9069_flux'] /
-                                   fitresults['s3_9069_error'],
-                                   fitresults['s3_9532_flux'] /
-                                   fitresults['s3_9532_error'],
-                                   fitresults['he10830_flux'] /
-                                   fitresults['he10830_error']])
+        full_fitmodel = np.ma.masked_where(np.ma.getmask(spec_val), full_fitmodel)
+        full_contmodel = np.ma.masked_where(np.ma.getmask(spec_val), full_contmodel)
 
-        #### calculate the significance of the other lines that are not oiii.
-        signal_lines = np.array([fitresults['o2_flux'], fitresults['hg_4342_flux'], fitresults['hb_4863_flux'], fitresults['han2_flux'], fitresults['s2_flux']])
-        err_lines = np.array([fitresults['o2_error'], fitresults['hg_4342_error'], fitresults['hb_4863_error'], fitresults['han2_error'], fitresults['s2_error']])
+        # loop over the lines specified in 'flux_strings' and save the results to an array.
+        snr_meas_array = []
+        for line in flux_strings:
+            snr_meas_array.append(fitresults[line+'_flux'] / fitresults[line+'_error'])
+        snr_meas_array = np.array(snr_meas_array)
 
-        w=np.where(signal_lines > 0)
-        snr_tot_others = np.sum(signal_lines[w]) / np.sqrt(np.sum(err_lines[w]**2))
+        signal_lines = []
+        for line in flux_strings:
+            signal_lines.append(fitresults[line+'_flux'])
+        signal_lines = np.array(signal_lines)
 
+        err_lines = []
+        for line in flux_strings:
+            err_lines.append(fitresults[line+'_error'])
+        err_lines = np.array(err_lines)
 
+        # calculate a weighted s/n ratio for all lines and print on the plot.
 
-        # plot the whole goddamn thing
+        #signal_lines = np.array([fitresults['o2_total_flux'], fitresults['hg_4342_flux'], fitresults['hb_4863_flux'],fitresults['ha_total_flux'], fitresults['s2_total_flux']])
+        #err_lines   = np.array([fitresults['o2_total_error'], fitresults['hg_4342_error'], fitresults['hb_4863_error'], fitresults['ha_total_error'], fitresults['s2_total_error']])
+
+        w = np.where(signal_lines > 0)
+
+        # MDR 2022/06/10 - updated the definition of weight SNR to be sum of SNRs that are  > 3 weighted by their contribution to the total flux.
+        total_flux = 0
+        for line in flux_strings:
+            snr_line = (fitresults[line+'_flux'] / fitresults[line+'_error'])
+            if (snr_line >= 3.0):
+                total_flux = (total_flux + fitresults[line+'_flux'])
+        # MDR 2022/06/10
+        snr_tot_others = []
+        for line in flux_strings:
+            snr_line = (fitresults[line+'_flux'] / fitresults[line+'_error'])
+            if (snr_line >= 3.0):
+                snr_tot_weight = (fitresults[line+'_flux'] / total_flux)
+                snr_tot_others.append(snr_line * snr_tot_weight)
+        # MDR 2022/06/10
+        snr_tot_others = np.sum(snr_tot_others)
+
+        # plot the whole darn thing
         plot_object(zguess, fitresults['redshift'],
                     spdata, config_pars, snr_meas_array, snr_tot_others, full_fitmodel,
                     full_contmodel, lamline, lamlines_found,
@@ -805,6 +1030,13 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         # checking user's input. keeping this format the same as before
         # any time done is set to 1, the object is considered fit
 
+        ### MDR 2022/06/30
+        if option.strip().lower() == 'full':
+            fast_fit = False
+        if option.strip().lower() == 'fast':
+            fast_fit = True
+        ### MDR 2022/06/30
+
         # reject object
         if option.strip().lower() == 'r':
            zset = 0
@@ -814,11 +1046,19 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                 comment = 'rejected'
            done = 1
 
-        # accept object
+        # # accept object
+        # elif option.strip().lower() == 'a':
+        #     done = 1
+        #     zset = 1
+        #     flagcont = 1
+        # accept object MDR 2022/06/30
         elif option.strip().lower() == 'a':
-            done = 1
-            zset = 1
-            flagcont = 1
+            if fast_fit == False:
+                done = 1
+                zset = 1
+                flagcont = 1
+            elif fast_fit == True:
+                print '\nWARNING: Still using fast fit mode, type full for refined fit.'
 
         # accept object and note contamination
         elif option.strip().lower() == 'ac':
@@ -944,9 +1184,6 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                 print 'there are no stored fits!'
 
 
-
-
-
         # reset all options
         elif option.strip().lower() == 'reset':
             print_prompt("Reset configuration parameters, fwhm guess, and zguess to default values")
@@ -955,7 +1192,8 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             # reset strongest line, too
             index_of_strongest_line = 0
             lamline = lamlines_found[index_of_strongest_line]
-            zguess = lamline / lam_Halpha - 1
+            #zguess = lamline / ha_6565_vac - 1
+            zguess = lamline / ((o2_3727_vac + o2_3730_vac) / 2.0) - 1.0
             # reset contamflags
             for k, v in contamflags.iteritems():
                     contamflags[k] = contamflags[k] & 0
@@ -985,7 +1223,8 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             index_of_strongest_line = index_of_strongest_line + 1
             if index_of_strongest_line < (nlines_found_cwt):
                 lamline = lamlines_found[index_of_strongest_line]
-                zguess = lamline / 6564.610 - 1 #zguess = lamline / 6564. - 1  # M.D.R 01/06/2021
+                #zguess = lamline / 6564.610 - 1.0
+                zguess = lamline / ((o2_3727_vac + o2_3730_vac) / 2.0) - 1.0
             else:
                 print_prompt('There are no other automatically identified peaks. Select another option.')
                 # stay at current line
@@ -993,28 +1232,30 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
 
 
         # change to another line
-        elif option.strip().lower() == 'lya': # M.D.R 01/06/2021
-            zguess = (lamline / lam_Lya) - 1 # M.D.R 01/06/2021
-        elif option.strip().lower() == 'ha':
-            zguess = (lamline / lam_Halpha) - 1
-        elif option.strip().lower() == 'hb':
-            zguess = (lamline / lam_Hbeta) - 1
+        elif option.strip().lower() == 'lya':
+            zguess = (lamline / la_1216_vac) - 1.0
+        elif option.strip().lower() == 'c4':
+            zguess = (lamline / c4_1548_vac) - 1.0
         elif option.strip().lower() == 'o2':
-            zguess = (lamline / lam_Oii) - 1
+            zguess = (lamline / o2_3727_vac) - 1.0
+        elif option.strip().lower() == 'hb':
+            zguess = (lamline / hb_4863_vac) - 1.0
         elif option.strip().lower() == 'o31':
-            zguess = (lamline / lam_Oiii_1) - 1
+            zguess = (lamline / o3_4959_vac) - 1.0
         elif option.strip().lower() == 'o32':
-            zguess = (lamline / lam_Oiii_2) - 1
+            zguess = (lamline / o3_5007_vac) - 1.0
+        elif option.strip().lower() == 'ha':
+            zguess = (lamline / ha_6565_vac) - 1.0
         elif option.strip().lower() == 's2':
-            zguess = (lamline / lam_Sii) - 1
+            zguess = (lamline / s2_6716_vac) - 1.0
         elif option.strip().lower() == 's31':
-            zguess = (lamline / lam_Siii_1) - 1
+            zguess = (lamline / s3_9069_vac) - 1.0
         elif option.strip().lower() == 's32':
-            zguess = (lamline / lam_Siii_2) - 1
+            zguess = (lamline / s3_9532_vac) - 1.0
 
         # note contamination
         elif option.strip().lower() == 'contam':
-            print_prompt("Specify contamination.\nEnter a comma-separated list of identifiers choosing from:\n  o2,hg,hb,o3,ha,s2,s31,s32,he1,c(ontinuum)")
+            print_prompt("Specify contamination.\nEnter a comma-separated list of identifiers choosing from:\n"+contam_flags_string)
             cf = raw_input("> ")
             cflags = [thing.strip().lower() for thing in cf.split(',')]
             # continuum contamination sets bit 1 for all lines and the continuum itself
@@ -1089,7 +1330,6 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                     show2dNEW('G102', par, obj, g102zeros, user, 'linear',
                               zran1=z1, zran2=z2, path_to_wisp_data = path_to_wisp_data)
 
-
         # change g141 2d stamp scaling to zscale
         elif option.strip().lower() == 'zs141':
             print_prompt("Enter comma-separated range for G141 zscale: z1,z2")
@@ -1149,7 +1389,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
 
     # only re-save data if the previous fit was discarded
     if rejectPrevFit :
-        # plot the whole goddamn thing
+        # plot the whole darn thing
         plot_object(zguess, fitresults['redshift'],
                     spdata, config_pars, snr_meas_array, snr_tot_others, full_fitmodel,
                     full_contmodel, lamline, lamlines_found,
@@ -1169,10 +1409,8 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             #databaseManager.saveCatalogueEntry(databaseManager.layoutCatalogueData(par, obj, ra[0], dec[0], a_image[0],
             #                                                                       b_image[0], jmag[0], hmag[0], fitresults, flagcont))
 
-            # writeToCatalog(linelistoutfile, par, obj, ra, dec, a_image,
-            #                b_image, jmag, hmag, snr_tot_others, fitresults, contamflags)
             writeToCatalog(linelistoutfile, par, obj, ra, dec, a_image,
-                           b_image, jmag, hmag, snr_tot_others, fitresults, contamflags) # MDR 2022/05/17 - removed snr_tot_others or code crashes.
+                           b_image, jmag, hmag, snr_tot_others, fitresults, contamflags)
 
             writeFitdata(fitdatafilename, spec_lam, spec_val, spec_unc,
                          spec_con, spec_zer, full_fitmodel, full_contmodel, mask_flg)
@@ -1556,6 +1794,7 @@ def measure_z_interactive(linelistfile=" ", path_to_wisp_data = ' ', show_disper
         #               commentsfile, remaining_objects, allobjects,
         #               show_dispersed=show_dispersed)
 
+
         if (use_stored_fits == True):
             ### get pickle files:
             inpickles = []
@@ -1741,127 +1980,265 @@ def measure_z_interactive(linelistfile=" ", path_to_wisp_data = ' ', show_disper
 def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_image_obj, jmag_obj, hmag_obj, snr_tot_others, fitresults, contamflags):
     if not os.path.exists(catalogname):
         cat = open(catalogname, 'w')
-        cat.write('#1  ParNo\n')
-        cat.write('#2  ObjID\n')
-        cat.write('#3 RA \n')
-        cat.write('#4 Dec \n')
-        cat.write('#5 Jmagnitude [99.0 denotes no detection] \n')
-        cat.write('#6 Hmagnitude [99.0 denotes no detection] \n')
-        cat.write('#7 A_IMAGE \n')
-        cat.write('#8 B_IMAGE \n')
-        cat.write('#9 redshift \n')
-        cat.write('#10 redshift_err \n')
-        cat.write('#11 SNR_confirm [Combined OII, Hg, Hb, Ha, SII] \n')
-        cat.write('#12 dz_oiii \n')
-        cat.write('#13 dz_oii \n')
-        cat.write('#14 dz_siii_hei \n')
-        cat.write('#15 G141_FWHM_Obs  [Angs] \n')
-        cat.write('#16 G141_FWHM_Obs_err  \n')
-        cat.write('#17 oii_flux \n')
-        cat.write('#18 oii_err \n')
-        cat.write('#19 oii_EW_obs \n')
-        cat.write('#20 oii_contam \n')
-        cat.write('#21 hg_flux \n')
-        cat.write('#22 hg_err \n')
-        cat.write('#23 hg_EW_obs \n')
-        cat.write('#24 hg_contam \n')
-        cat.write('#25 hb_flux \n')
-        cat.write('#26 hb_err \n')
-        cat.write('#27 hb_EW_obs \n')
-        cat.write('#28 hb_contam \n')
-        cat.write('#29 oiii_flux\n')
-        cat.write('#30 oiii_err\n')
-        cat.write('#31 oiii_EW_obs\n')
-        cat.write('#32 oiii_contam\n')
-        cat.write('#33 hanii_flux \n')
-        cat.write('#34 hanii_err \n')
-        cat.write('#35 hanii_EW_obs \n')
-        cat.write('#36 hanii_contam \n')
-        cat.write('#37 sii_flux \n')
-        cat.write('#38 sii_err \n')
-        cat.write('#39 sii_EW_obs \n')
-        cat.write('#40 sii_contam \n')
-        cat.write('#41 siii_9069_flux \n')
-        cat.write('#42 siii_9069_err \n')
-        cat.write('#43 siii_9069_EW_obs \n')
-        cat.write('#44 siii_9069_contam \n')
-        cat.write('#45 siii_9532_flux \n')
-        cat.write('#46 siii_9532_err \n')
-        cat.write('#47 siii_9532_EW_obs \n')
-        cat.write('#48 siii_9532_contam \n')
-        cat.write('#49 hei_10830_flux \n')
-        cat.write('#50 hei_10830_err \n')
-        cat.write('#51 hei_10830_EW_obs \n')
-        cat.write('#52 hei_10830_contam \n')
-        cat.write('#53 lya_flux \n') # M.D.R 01/06/2021
-        cat.write('#54 lya_err \n') # M.D.R 01/06/2021
-        cat.write('#55 lya_EW_obs \n') # M.D.R 01/06/2021
-        cat.write('#56 lya_contam \n') # M.D.R 01/06/2021
+        cat.write('#1 objid \n')
+        cat.write('#2 redshift \n')
+        cat.write('#3 redshift_error \n')
+        cat.write('#4 ra_obj \n')
+        cat.write('#5 dec_obj \n')
+        cat.write('#6 hmag_obj \n')
+        cat.write('#7 a_image_obj \n')
+        cat.write('#8 b_image_obj \n')
+        cat.write('#9 snr_tot_others \n')
+        cat.write('#10 chisq \n')
+        cat.write('#11 fwhm_muse \n')
+        cat.write('#12 fwhm_muse_error \n')
+        cat.write('#13 fwhm_g141 \n')
+        cat.write('#14 fwhm_g141_error \n')
+        cat.write('#15 la_1216_dz \n')
+        cat.write('#16 c4_1548_dz \n')
+        cat.write('#17 uv_line_dz \n')
+        cat.write('#18 m2_2796_dz \n')
+        cat.write('#19 o2_3727_dz \n')
+        cat.write('#20 o3_5007_dz \n')
+        cat.write('#21 s3_he_dz \n')
 
-#        cat.write('#43 ContamFlag \n')
+        result_lines = [\
+        'la_1216', 'la_wing', 'la_total', \
+        'n5_1238', 'n5_1242', 'n5_total', \
+        'c4_1548', 'c4_1550', 'c4_total', \
+        'h2_1640', \
+        'o3_1660', 'o3_1666', 'o3_total', \
+        's3_1883', 's3_1892', 's3_total', \
+        'c3_1907', 'c3_1909', 'c3_total', \
+        'm2_2796', 'm2_2803', 'm2_total', \
+        'o2_3727', 'o2_3730', 'o2_total', \
+        'hg_4342', 'o3_4363', 'h2_4686', \
+        'hb_4863', 'o3_4959', 'o3_5007', \
+        'o1_6300', 'o1_6363', 'n2_6550', \
+        'ha_6565', 'n2_6585', 'ha_total', \
+        's2_6716', 's2_6731', 's2_total', \
+        's3_9069', 's3_9532', 'he10830']
+
+        results_idx = 22
+
+        for line in result_lines:
+            cat.write('#'+str(results_idx+0)+' '+line+'_flux \n')
+            cat.write('#'+str(results_idx+1)+' '+line+'_error \n')
+            cat.write('#'+str(results_idx+2)+' '+line+'_ew_obs \n')
+            cat.write('#'+str(results_idx+3)+' '+line+'_contam \n')
+            results_idx = results_idx + 4
+
+        # #cat.write('#1 ParNo\n')
+        # cat.write('#2 ObjID\n')
+        # cat.write('#3 RA \n')
+        # cat.write('#4 Dec \n')
+        # #cat.write('#5 Jmagnitude [99.0 denotes no detection] \n')
+        # cat.write('#6 F140W_MAG_AUTO [99.0 denotes no detection] \n')
+        # cat.write('#7 A_IMAGE \n')
+        # cat.write('#8 B_IMAGE \n')
+        # cat.write('#9 redshift \n')
+        # cat.write('#10 redshift_error \n')
+        # cat.write('#11 weighted_SNR [flux-weighted SNR of saved lines] \n')
+        # cat.write('#12 o3_5007_dz \n')
+        # cat.write('#13 o2_3727_dz \n')
+        # cat.write('#14 s3_he_dz \n')
+        # cat.write('#15 G141_FWHM_obs [Angstroms] \n')
+        # cat.write('#16 G141_FWHM_obs_error  \n')
         cat.close()
-       # cat.write('#45 Comment \n')
 
-#    else:
-#        cat = open(catalogname, 'a')
-
-    outstr = '{:<8d}'.format(parnos) + \
-        '{:<6d}'.format(objid) +\
+    outstr = '{:<6d}'.format(objid) +\
+        '{:>8.4f}'.format(fitresults['redshift']) + \
+        '{:>10.4f}'.format(fitresults['redshift_error']) +\
         '{:<12.6f}'.format(ra_obj[0]) + \
         '{:<12.6f}'.format(dec_obj[0]) + \
-        '{:<8.2f}'.format(jmag_obj[0]) + \
         '{:<8.2f}'.format(hmag_obj[0]) + \
         '{:<8.3f}'.format(a_image_obj[0]) + \
         '{:<8.3f}'.format(b_image_obj[0]) + \
-        '{:>8.4f}'.format(fitresults['redshift']) + \
-        '{:>10.4f}'.format(fitresults['redshift_err']) +\
         '{:>10.4f}'.format(snr_tot_others) +\
-        '{:>10.4f}'.format(fitresults['o3_5007_dz'])  + \
-        '{:>10.4f}'.format(fitresults['o2_3727_dz'])   + \
-        '{:>10.4f}'.format(fitresults['s3_he_dz']) +\
+        '{:>8.4f}'.format(fitresults['chisq']) + \
+        '{:>10.2f}'.format(fitresults['fwhm_muse']) + \
+        '{:>10.2f}'.format(fitresults['fwhm_muse_error'])  +  \
         '{:>10.2f}'.format(fitresults['fwhm_g141']) + \
-        '{:>10.2f}'.format(fitresults['fwhm_g141_err'])  +  \
-        '{:>13.2e}'.format(fitresults['o2_flux'])  + \
-        '{:>13.2e}'.format(fitresults['o2_error']) +  \
-        '{:>13.2e}'.format(fitresults['o2_ew_obs']) +\
-        '{:>6d}'.format(contamflags['o2']) +\
-        '{:>13.2e}'.format(fitresults['hg_4342_flux']) +\
-        '{:>13.2e}'.format(fitresults['hg_4342_error']) + \
-        '{:>13.2e}'.format(fitresults['hg_4342_ew_obs']) +\
-        '{:>6d}'.format(contamflags['hg']) +\
-        '{:>13.2e}'.format(fitresults['hb_4863_flux']) + \
-        '{:>13.2e}'.format(fitresults['hb_4863_error']) + \
-        '{:>13.2e}'.format(fitresults['hb_4863_ew_obs']) +\
-        '{:>6d}'.format(contamflags['hb']) +\
-        '{:>13.2e}'.format(fitresults['o3_5007_flux']) + \
-        '{:>13.2e}'.format(fitresults['o3_5007_error']) + \
-        '{:>13.2e}'.format(fitresults['o3_5007_ew_obs']) +\
-        '{:>6d}'.format(contamflags['o3']) +\
-        '{:>13.2e}'.format(fitresults['han2_flux']) + \
-        '{:>13.2e}'.format(fitresults['han2_error']) + \
-        '{:>13.2e}'.format(fitresults['han2_ew_obs']) + \
-        '{:>6d}'.format(contamflags['ha']) +\
-        '{:>13.2e}'.format(fitresults['s2_flux']) + \
-        '{:>13.2e}'.format(fitresults['s2_error']) + \
-        '{:>13.2e}'.format(fitresults['s2_ew_obs']) +\
-        '{:>6d}'.format(contamflags['s2']) +\
-        '{:>13.2e}'.format(fitresults['s3_9069_flux']) + \
-        '{:>13.2e}'.format(fitresults['s3_9069_error']) + \
-        '{:>13.2e}'.format(fitresults['s3_9069_ew_obs']) +\
-        '{:>6d}'.format(contamflags['s31']) +\
-        '{:>13.2e}'.format(fitresults['s3_9532_flux']) + \
-        '{:>13.2e}'.format(fitresults['s3_9532_error']) + \
-        '{:>13.2e}'.format(fitresults['s3_9532_ew_obs']) +\
-        '{:>6d}'.format(contamflags['s32']) +\
-        '{:>13.2e}'.format(fitresults['he10830_flux']) + \
-        '{:>13.2e}'.format(fitresults['he10830_error']) + \
-        '{:>13.2e}'.format(fitresults['he10830_ew_obs']) +\
-        '{:>6d}'.format(contamflags['he1']) +\
+        '{:>10.2f}'.format(fitresults['fwhm_g141_error'])  +  \
+        '{:>10.4f}'.format(fitresults['la_1216_dz'])   + \
+        '{:>10.4f}'.format(fitresults['c4_1548_dz'])   + \
+        '{:>10.4f}'.format(fitresults['uv_line_dz'])   + \
+        '{:>10.4f}'.format(fitresults['m2_2796_dz'])   + \
+        '{:>10.4f}'.format(fitresults['o2_3727_dz'])   + \
+        '{:>10.4f}'.format(fitresults['o3_5007_dz'])  + \
+        '{:>10.4f}'.format(fitresults['s3_he_dz']) +\
         '{:>13.2e}'.format(fitresults['la_1216_flux']) + \
         '{:>13.2e}'.format(fitresults['la_1216_error']) + \
         '{:>13.2e}'.format(fitresults['la_1216_ew_obs']) +\
-        '{:>6d}'.format(contamflags['lya']) + '\n'
-        #     '   ' + '{:<6d}'.format(flagcont) + ' \n' # M.D.R 01/06/2021
+        '{:>6d}'.format(contamflags['la_1216']) +\
+        '{:>13.2e}'.format(fitresults['la_wing_flux']) + \
+        '{:>13.2e}'.format(fitresults['la_wing_error']) + \
+        '{:>13.2e}'.format(fitresults['la_wing_ew_obs']) +\
+        '{:>6d}'.format(contamflags['la_1216']) +\
+        '{:>13.2e}'.format(fitresults['la_total_flux']) + \
+        '{:>13.2e}'.format(fitresults['la_total_error']) + \
+        '{:>13.2e}'.format(fitresults['la_total_ew_obs']) +\
+        '{:>6d}'.format(contamflags['la_1216']) +\
+        '{:>13.2e}'.format(fitresults['n5_1238_flux'])  + \
+        '{:>13.2e}'.format(fitresults['n5_1238_error']) +  \
+        '{:>13.2e}'.format(fitresults['n5_1238_ew_obs']) +\
+        '{:>6d}'.format(contamflags['n5_1238']) +\
+        '{:>13.2e}'.format(fitresults['n5_1242_flux'])  + \
+        '{:>13.2e}'.format(fitresults['n5_1242_error']) +  \
+        '{:>13.2e}'.format(fitresults['n5_1242_ew_obs']) +\
+        '{:>6d}'.format(contamflags['n5_1242']) +\
+        '{:>13.2e}'.format(fitresults['n5_total_flux'])  + \
+        '{:>13.2e}'.format(fitresults['n5_total_error']) +  \
+        '{:>13.2e}'.format(fitresults['n5_total_ew_obs']) +\
+        '{:>6d}'.format(np.max([contamflags['n5_1238'], contamflags['n5_1242']])) +\
+        '{:>13.2e}'.format(fitresults['c4_1548_flux'])  + \
+        '{:>13.2e}'.format(fitresults['c4_1548_error']) +  \
+        '{:>13.2e}'.format(fitresults['c4_1548_ew_obs']) +\
+        '{:>6d}'.format(contamflags['c4_1548']) +\
+        '{:>13.2e}'.format(fitresults['c4_1550_flux'])  + \
+        '{:>13.2e}'.format(fitresults['c4_1550_error']) +  \
+        '{:>13.2e}'.format(fitresults['c4_1550_ew_obs']) +\
+        '{:>6d}'.format(contamflags['c4_1550']) +\
+        '{:>13.2e}'.format(fitresults['c4_total_flux'])  + \
+        '{:>13.2e}'.format(fitresults['c4_total_error']) +  \
+        '{:>13.2e}'.format(fitresults['c4_total_ew_obs']) +\
+        '{:>6d}'.format(np.max([contamflags['c4_1548'], contamflags['c4_1550']])) +\
+        '{:>13.2e}'.format(fitresults['h2_1640_flux'])  + \
+        '{:>13.2e}'.format(fitresults['h2_1640_error']) +  \
+        '{:>13.2e}'.format(fitresults['h2_1640_ew_obs']) +\
+        '{:>6d}'.format(contamflags['h2_1640']) +\
+        '{:>13.2e}'.format(fitresults['o3_1660_flux'])  + \
+        '{:>13.2e}'.format(fitresults['o3_1660_error']) +  \
+        '{:>13.2e}'.format(fitresults['o3_1660_ew_obs']) +\
+        '{:>6d}'.format(contamflags['o3_1660']) +\
+        '{:>13.2e}'.format(fitresults['o3_1666_flux'])  + \
+        '{:>13.2e}'.format(fitresults['o3_1666_error']) +  \
+        '{:>13.2e}'.format(fitresults['o3_1666_ew_obs']) +\
+        '{:>6d}'.format(contamflags['o3_1666']) +\
+        '{:>13.2e}'.format(fitresults['o3_total_flux'])  + \
+        '{:>13.2e}'.format(fitresults['o3_total_error']) +  \
+        '{:>13.2e}'.format(fitresults['o3_total_ew_obs']) +\
+        '{:>6d}'.format(np.max([contamflags['o3_1660'], contamflags['o3_1666']])) +\
+        '{:>13.2e}'.format(fitresults['s3_1883_flux'])  + \
+        '{:>13.2e}'.format(fitresults['s3_1883_error']) +  \
+        '{:>13.2e}'.format(fitresults['s3_1883_ew_obs']) +\
+        '{:>6d}'.format(contamflags['s3_1883']) +\
+        '{:>13.2e}'.format(fitresults['s3_1892_flux'])  + \
+        '{:>13.2e}'.format(fitresults['s3_1892_error']) +  \
+        '{:>13.2e}'.format(fitresults['s3_1892_ew_obs']) +\
+        '{:>6d}'.format(contamflags['s3_1892']) +\
+        '{:>13.2e}'.format(fitresults['s3_total_flux'])  + \
+        '{:>13.2e}'.format(fitresults['s3_total_error']) +  \
+        '{:>13.2e}'.format(fitresults['s3_total_ew_obs']) +\
+        '{:>6d}'.format(np.max([contamflags['s3_1883'], contamflags['s3_1892']])) +\
+        '{:>13.2e}'.format(fitresults['c3_1907_flux'])  + \
+        '{:>13.2e}'.format(fitresults['c3_1907_error']) +  \
+        '{:>13.2e}'.format(fitresults['c3_1907_ew_obs']) +\
+        '{:>6d}'.format(contamflags['c3_1907']) +\
+        '{:>13.2e}'.format(fitresults['c3_1909_flux'])  + \
+        '{:>13.2e}'.format(fitresults['c3_1909_error']) +  \
+        '{:>13.2e}'.format(fitresults['c3_1909_ew_obs']) +\
+        '{:>6d}'.format(contamflags['c3_1909']) +\
+        '{:>13.2e}'.format(fitresults['c3_total_flux'])  + \
+        '{:>13.2e}'.format(fitresults['c3_total_error']) +  \
+        '{:>13.2e}'.format(fitresults['c3_total_ew_obs']) +\
+        '{:>6d}'.format(np.max([contamflags['c3_1907'], contamflags['c3_1909']])) +\
+        '{:>13.2e}'.format(fitresults['m2_2796_flux'])  + \
+        '{:>13.2e}'.format(fitresults['m2_2796_error']) +  \
+        '{:>13.2e}'.format(fitresults['m2_2796_ew_obs']) +\
+        '{:>6d}'.format(contamflags['m2_2796']) +\
+        '{:>13.2e}'.format(fitresults['m2_2803_flux'])  + \
+        '{:>13.2e}'.format(fitresults['m2_2803_error']) +  \
+        '{:>13.2e}'.format(fitresults['m2_2803_ew_obs']) +\
+        '{:>6d}'.format(contamflags['m2_2803']) +\
+        '{:>13.2e}'.format(fitresults['m2_total_flux'])  + \
+        '{:>13.2e}'.format(fitresults['m2_total_error']) +  \
+        '{:>13.2e}'.format(fitresults['m2_total_ew_obs']) +\
+        '{:>6d}'.format(np.max([contamflags['m2_2796'], contamflags['m2_2803']])) +\
+        '{:>13.2e}'.format(fitresults['o2_3727_flux'])  + \
+        '{:>13.2e}'.format(fitresults['o2_3727_error']) +  \
+        '{:>13.2e}'.format(fitresults['o2_3727_ew_obs']) +\
+        '{:>6d}'.format(contamflags['o2_3727']) +\
+        '{:>13.2e}'.format(fitresults['o2_3730_flux'])  + \
+        '{:>13.2e}'.format(fitresults['o2_3730_error']) +  \
+        '{:>13.2e}'.format(fitresults['o2_3730_ew_obs']) +\
+        '{:>6d}'.format(contamflags['o2_3730']) +\
+        '{:>13.2e}'.format(fitresults['o2_total_flux'])  + \
+        '{:>13.2e}'.format(fitresults['o2_total_error']) +  \
+        '{:>13.2e}'.format(fitresults['o2_total_ew_obs']) +\
+        '{:>6d}'.format(np.max([contamflags['o2_3727'], contamflags['o2_3730']])) +\
+        '{:>13.2e}'.format(fitresults['hg_4342_flux']) +\
+        '{:>13.2e}'.format(fitresults['hg_4342_error']) + \
+        '{:>13.2e}'.format(fitresults['hg_4342_ew_obs']) +\
+        '{:>6d}'.format(contamflags['hg_4342']) +\
+        '{:>13.2e}'.format(fitresults['o3_4363_flux']) +\
+        '{:>13.2e}'.format(fitresults['o3_4363_error']) + \
+        '{:>13.2e}'.format(fitresults['o3_4363_ew_obs']) +\
+        '{:>6d}'.format(contamflags['o3_4363']) +\
+        '{:>13.2e}'.format(fitresults['h2_4686_flux']) +\
+        '{:>13.2e}'.format(fitresults['h2_4686_error']) + \
+        '{:>13.2e}'.format(fitresults['h2_4686_ew_obs']) +\
+        '{:>6d}'.format(contamflags['h2_4686']) +\
+        '{:>13.2e}'.format(fitresults['hb_4863_flux']) + \
+        '{:>13.2e}'.format(fitresults['hb_4863_error']) + \
+        '{:>13.2e}'.format(fitresults['hb_4863_ew_obs']) +\
+        '{:>6d}'.format(contamflags['hb_4863']) +\
+        '{:>13.2e}'.format(fitresults['o3_4959_flux']) + \
+        '{:>13.2e}'.format(fitresults['o3_4959_error']) + \
+        '{:>13.2e}'.format(fitresults['o3_4959_ew_obs']) +\
+        '{:>6d}'.format(contamflags['o3_4959']) +\
+        '{:>13.2e}'.format(fitresults['o3_5007_flux']) + \
+        '{:>13.2e}'.format(fitresults['o3_5007_error']) + \
+        '{:>13.2e}'.format(fitresults['o3_5007_ew_obs']) +\
+        '{:>6d}'.format(contamflags['o3_5007']) +\
+        '{:>13.2e}'.format(fitresults['o1_6300_flux'])  + \
+        '{:>13.2e}'.format(fitresults['o1_6300_error']) +  \
+        '{:>13.2e}'.format(fitresults['o1_6300_ew_obs']) +\
+        '{:>6d}'.format(contamflags['o1_6300']) +\
+        '{:>13.2e}'.format(fitresults['o1_6363_flux'])  + \
+        '{:>13.2e}'.format(fitresults['o1_6363_error']) +  \
+        '{:>13.2e}'.format(fitresults['o1_6363_ew_obs']) +\
+        '{:>6d}'.format(contamflags['o1_6363']) +\
+        '{:>13.2e}'.format(fitresults['n2_6550_flux'])  + \
+        '{:>13.2e}'.format(fitresults['n2_6550_error']) +  \
+        '{:>13.2e}'.format(fitresults['n2_6550_ew_obs']) +\
+        '{:>6d}'.format(contamflags['n2_6550']) +\
+        '{:>13.2e}'.format(fitresults['ha_6565_flux'])  + \
+        '{:>13.2e}'.format(fitresults['ha_6565_error']) +  \
+        '{:>13.2e}'.format(fitresults['ha_6565_ew_obs']) +\
+        '{:>6d}'.format(contamflags['ha_6565']) +\
+        '{:>13.2e}'.format(fitresults['n2_6585_flux'])  + \
+        '{:>13.2e}'.format(fitresults['n2_6585_error']) +  \
+        '{:>13.2e}'.format(fitresults['n2_6585_ew_obs']) +\
+        '{:>6d}'.format(contamflags['n2_6585']) +\
+        '{:>13.2e}'.format(fitresults['ha_total_flux']) + \
+        '{:>13.2e}'.format(fitresults['ha_total_error']) + \
+        '{:>13.2e}'.format(fitresults['ha_total_ew_obs']) + \
+        '{:>6d}'.format(np.max([contamflags['ha_6565'], contamflags['n2_6585']])) +\
+        '{:>13.2e}'.format(fitresults['s2_6716_flux'])  + \
+        '{:>13.2e}'.format(fitresults['s2_6716_error']) +  \
+        '{:>13.2e}'.format(fitresults['s2_6716_ew_obs']) +\
+        '{:>6d}'.format(contamflags['s2_6716']) +\
+        '{:>13.2e}'.format(fitresults['s2_6731_flux'])  + \
+        '{:>13.2e}'.format(fitresults['s2_6731_error']) +  \
+        '{:>13.2e}'.format(fitresults['s2_6731_ew_obs']) +\
+        '{:>6d}'.format(contamflags['s2_6731']) +\
+        '{:>13.2e}'.format(fitresults['s2_total_flux']) + \
+        '{:>13.2e}'.format(fitresults['s2_total_error']) + \
+        '{:>13.2e}'.format(fitresults['s2_total_ew_obs']) +\
+        '{:>6d}'.format(np.max([contamflags['s2_6716'], contamflags['s2_6731']])) +\
+        '{:>13.2e}'.format(fitresults['s3_9069_flux']) + \
+        '{:>13.2e}'.format(fitresults['s3_9069_error']) + \
+        '{:>13.2e}'.format(fitresults['s3_9069_ew_obs']) +\
+        '{:>6d}'.format(contamflags['s3_9069']) +\
+        '{:>13.2e}'.format(fitresults['s3_9532_flux']) + \
+        '{:>13.2e}'.format(fitresults['s3_9532_error']) + \
+        '{:>13.2e}'.format(fitresults['s3_9532_ew_obs']) +\
+        '{:>6d}'.format(contamflags['s3_9532']) +\
+        '{:>13.2e}'.format(fitresults['he10830_flux']) + \
+        '{:>13.2e}'.format(fitresults['he10830_error']) + \
+        '{:>13.2e}'.format(fitresults['he10830_ew_obs']) +\
+        '{:>6d}'.format(contamflags['he10830']) + '\n'
 
     """
     # if a row already exists for this object, comment it out
