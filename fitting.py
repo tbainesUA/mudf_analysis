@@ -8,8 +8,7 @@ from mpfit import *
 2.) Define the index number that will represent the model amplitude for that line.
 3.) Set the value of 'first_node_index' to one greater than the last line index.
 4.) Add the line to the three locations where redshifted centroids are calculated.
-NOTE: Ensure that each model parameter index coded below is only used once.
-'''
+NOTE: Ensure that each model parameter index coded below is only used once.'''
 
 # Define the emission line vacuum wavelengths.
 la_1216_vac = 1215.670
@@ -71,7 +70,7 @@ c4_1548_idx = 16
 c4_1550_idx = 17 # ratio
 h2_1640_idx = 18
 o3_1660_idx = 19
-o3_1666_idx = 20 # fixed ratio
+o3_1666_idx = 20 # ratio
 s3_1883_idx = 21
 s3_1892_idx = 22 # ratio
 c3_1907_idx = 23
@@ -84,17 +83,17 @@ hg_4342_idx = 29
 o3_4363_idx = 30
 h2_4686_idx = 31
 hb_4863_idx = 32
-o3_4959_idx = 33 # fixed ratio
-o3_5007_idx = 34
+o3_4959_idx = 33
+o3_5007_idx = 34 # ratio
 o1_6300_idx = 35
-o1_6363_idx = 36 # fixed ratio
-n2_6550_idx = 37 # fixed ratio
+o1_6363_idx = 36 # ratio
+n2_6550_idx = 37
 ha_6565_idx = 38
-n2_6585_idx = 39
+n2_6585_idx = 39 # ratio
 s2_6716_idx = 40
 s2_6731_idx = 41 # ratio
 s3_9069_idx = 42
-s3_9532_idx = 43
+s3_9532_idx = 43 # ratio
 he10830_idx = 44
 # lyman alpha wing.
 la_wing_amp_idx = 45
@@ -104,7 +103,7 @@ la_wing_sig_idx = 46 # ratio
 
 first_line_index = 6  # This should be the first emission line parameter index.
 first_node_index = 47 # This must be one larger than last line parameter index.
-ratio_indices = [15, 17, 22, 24, 26, 28, 41, 46] # A list of all parameter indices that are ratios below.
+ratio_indices = [15, 17, 20, 22, 24, 26, 28, 34, 36, 39, 41, 43, 46] # A list of all parameter indices that are ratios below.
 
 def get_ratio_indices():
     return ratio_indices
@@ -141,7 +140,11 @@ def emissionline_model(pars, x):
     o3_5007_dz      = pars[o3_5007_dzx]
     s3_he_dz        = pars[s3_he_dzx]
 
-    # line amplitudes
+    # define the emission line amplitude model parameters.
+    # those set as ratios are defined relative to the other line in the doublet.
+    # the physically allowable range for each ratio is set later in the code.
+    # the following ratios are fixed:
+    # 1666 = 2.46 * 1660; 5007 = 3 * 4959; 6300 = 3 * 6363; 6585 = 3 * 6550; 9532 = 2.48 * 9069
     la_1216_amp = pars[la_1216_idx]
     h2_1640_amp = pars[h2_1640_idx]
     n5_1238_amp = pars[n5_1238_idx]
@@ -149,7 +152,7 @@ def emissionline_model(pars, x):
     c4_1548_amp = pars[c4_1548_idx]
     c4_1550_amp = c4_1548_amp / pars[c4_1550_idx]
     o3_1660_amp = pars[o3_1660_idx]
-    o3_1666_amp = pars[o3_1666_idx] # fixed as 2.46 * 1660 below.
+    o3_1666_amp = o3_1660_amp / pars[o3_1666_idx]
     s3_1883_amp = pars[s3_1883_idx]
     s3_1892_amp = s3_1883_amp / pars[s3_1892_idx]
     c3_1907_amp = pars[c3_1907_idx]
@@ -162,17 +165,17 @@ def emissionline_model(pars, x):
     o3_4363_amp = pars[o3_4363_idx]
     h2_4686_amp = pars[h2_4686_idx]
     hb_4863_amp = pars[hb_4863_idx]
-    o3_4959_amp = pars[o3_4959_idx] # fixed as 1/3 of 5007 below.
-    o3_5007_amp = pars[o3_5007_idx]
+    o3_4959_amp = pars[o3_4959_idx]
+    o3_5007_amp = o3_4959_amp / pars[o3_5007_idx]
     o1_6300_amp = pars[o1_6300_idx]
-    o1_6363_amp = pars[o1_6363_idx] # fixed as 1/3 of 6300 below.
-    n2_6550_amp = pars[n2_6550_idx] # fixed as 1/3 of 6585 below.
+    o1_6363_amp = o1_6300_amp / pars[o1_6363_idx]
     ha_6565_amp = pars[ha_6565_idx]
-    n2_6585_amp = pars[n2_6585_idx]
+    n2_6550_amp = pars[n2_6550_idx]
+    n2_6585_amp = n2_6550_amp / pars[n2_6585_idx]
     s2_6716_amp = pars[s2_6716_idx]
     s2_6731_amp = s2_6716_amp / pars[s2_6731_idx]
     s3_9069_amp = pars[s3_9069_idx]
-    s3_9532_amp = pars[s3_9532_idx] # fixed as 2.48 * 9069 below.
+    s3_9532_amp = s3_9069_amp / pars[s3_9532_idx]
     he10830_amp = pars[he10830_idx]
     # lyman alpha wing.
     la_wing_amp = pars[la_wing_amp_idx]
@@ -597,12 +600,12 @@ def fit_obj(input_list):
         parinfo[t_wave_idx]['fixed'] = 1
 
         # allow fwhm_ratio to vary because extended sources in the grism will have broadened profiles.
-        parinfo[fwhm_ratio_idx]['value'] = 0.058 # 0.027 # ratio of the MUSE/WFC3 dispersions.
+        parinfo[fwhm_ratio_idx]['value'] = 0.058 # 0.027 # ratio of the MUSE/WFC3 data dispersions.
         parinfo[fwhm_ratio_idx]['fixed'] = 0
         parinfo[fwhm_ratio_idx]['limited'][0] = 1
         parinfo[fwhm_ratio_idx]['limited'][1] = 1
-        parinfo[fwhm_ratio_idx]['limits'][0]  = (0.5 * 0.058) # 0.027 # currently 2x. grism bigger = ratio lower.
-        parinfo[fwhm_ratio_idx]['limits'][1]  = (1.0 * 0.058) # 0.027 # currently 1x.
+        parinfo[fwhm_ratio_idx]['limits'][0]  = (0.5 * 0.058) # currently 2x. grism bigger = ratio lower.
+        parinfo[fwhm_ratio_idx]['limits'][1]  = (1.0 * 0.058) # currently 1x.
 
         parinfo[z_idx]['value'] = z_in
         parinfo[z_idx]['limited'][0] = 1
@@ -657,10 +660,11 @@ def fit_obj(input_list):
         ########################################################################
 
         # fill the parinfo array for mpfit with the amplitude guesses.
-        loop_lines = ['la_1216', 'n5_1238', 'c4_1548', 'h2_1640', 'o3_1660', \
-        's3_1883', 'c3_1907', 'm2_2796', 'o2_3727', 'hg_4342', 'o3_4363', \
-        'h2_4686', 'hb_4863', 'o3_5007', 'o1_6300', 'ha_6565', 'n2_6585', \
-        's2_6716', 's3_9069', 'he10830']
+        loop_lines = [\
+        'la_1216', 'n5_1238', 'c4_1548', 'h2_1640', 'o3_1660', \
+        's3_1883', 'c3_1907', 'm2_2796', 'o2_3727', 'hg_4342', \
+        'o3_4363', 'h2_4686', 'hb_4863', 'o3_4959', 'o1_6300', \
+        'ha_6565', 'n2_6550', 's2_6716', 's3_9069', 'he10830']
 
         # fix the lower limits to zero because the gaussian amplitudes must be positive.
         for line in loop_lines:
@@ -675,8 +679,7 @@ def fit_obj(input_list):
         ########################################################################
 
         # fix the upper and lower limits for ratios to their physically allowed values.
-        loop_ratios = ['n5_1242', 'c4_1550', 's3_1892', 'c3_1909', \
-        'm2_2803', 'o2_3730', 's2_6731']
+        loop_ratios = ['n5_1242', 'c4_1550', 's3_1892', 'c3_1909', 'm2_2803', 'o2_3730', 's2_6731']
 
         # allow the ratios to vary and set the upper and lower limits.
         for line in loop_ratios:
@@ -718,7 +721,6 @@ def fit_obj(input_list):
         parinfo[la_wing_amp_idx]['value'] = estimate_emission_line_amplitudes(la_1216_obs) / 5.0 # just a guess.
         parinfo[la_wing_amp_idx]['limited'][0] = 1
         parinfo[la_wing_amp_idx]['limits'][0]  = 0
-
         parinfo[la_wing_sig_idx]['value'] = 5.0 # guess 5x the default line width guess.
         parinfo[la_wing_sig_idx]['fixed'] = 0
         parinfo[la_wing_sig_idx]['limited'][0] = 1
@@ -730,30 +732,49 @@ def fit_obj(input_list):
 
         # define emission lines that are 'tied' to their stronger doublet for mpfit.
         # the amplitudes of the parent lines are fixed to be positive so does not need to be specified.
+        # the 'tied' feature works but does not calculate errors so move to using fixed values.
 
-        parinfo[o3_1666_idx]['value'] = (estimate_emission_line_amplitudes(o3_1660_obs) * 2.46)
-        parinfo[o3_1666_idx]['tied']  = 'p['+str(o3_1660_idx)+'] * 2.46'
+        # parinfo[o3_1666_idx]['value'] = (estimate_emission_line_amplitudes(o3_1660_obs) * 2.46)
+        # parinfo[o3_1666_idx]['tied']  = 'p['+str(o3_1660_idx)+'] * 2.46'
+        parinfo[o3_1666_idx]['value'] = (1.0 / 2.46) # blue line / red line
+        parinfo[o3_1666_idx]['fixed'] = 1
 
-        parinfo[o3_4959_idx]['value'] = (estimate_emission_line_amplitudes(o3_5007_obs) / 3.0)
-        parinfo[o3_4959_idx]['tied']  = 'p['+str(o3_5007_idx)+'] / 3.0'
+        # parinfo[o3_4959_idx]['value'] = (estimate_emission_line_amplitudes(o3_5007_obs) / 3.0)
+        # parinfo[o3_4959_idx]['tied']  = 'p['+str(o3_5007_idx)+'] / 3.0'
+        parinfo[o3_5007_idx]['value'] = (1.0 / 3.0) # blue line / red line
+        parinfo[o3_5007_idx]['fixed'] = 1
 
-        parinfo[o1_6363_idx]['value'] = (estimate_emission_line_amplitudes(o1_6300_obs) / 3.0)
-        parinfo[o1_6363_idx]['tied']  = 'p['+str(o1_6300_idx)+'] / 3.0'
+        # parinfo[o1_6363_idx]['value'] = (estimate_emission_line_amplitudes(o1_6300_obs) / 3.0)
+        # parinfo[o1_6363_idx]['tied']  = 'p['+str(o1_6300_idx)+'] / 3.0'
+        parinfo[o1_6363_idx]['value'] = (3.0 / 1.0) # blue line / red line
+        parinfo[o1_6363_idx]['fixed'] = 1
+
+        parinfo[n2_6585_idx]['value'] = (1.0 / 3.0) # blue line / red line
+        parinfo[n2_6585_idx]['fixed'] = 1
 
         # if Ha and [N II] are in the grism then lock the flux ratio (do not even think you should change this for grism data).
-        # testing showed that allowing this to vary in the grism often puts all of the flux into [N II] which is generally unphysical.
+        # testing showed that allowing this to vary in the grism often puts all of the flux into [N II] which is unphysical.
+        # if (ha_6565_obs > transition_wave):
+        #     parinfo[n2_6585_idx]['tied']  = 'p['+str(ha_6565_idx)+'] / 10.0'
+        #     parinfo[n2_6550_idx]['tied']  = 'p['+str(ha_6565_idx)+'] / 30.0'
+        # else:
+        #     parinfo[n2_6585_idx]['tied']  = ''
+        #     parinfo[n2_6550_idx]['tied']  = 'p['+str(n2_6585_idx)+'] / 3.0'
+        # to fix [N II] 6585 as 10% of halpha, we fix 6550 to 1/30 of total, so that
+        # 6585 is 3/30 of total, thus [N II] = 4/30 = 0.13 (13%) of the total flux.
+        # see table 2. of Erb 2006, this fraction generally changes with mass.
         if (ha_6565_obs > transition_wave):
-            parinfo[n2_6585_idx]['tied']  = 'p['+str(ha_6565_idx)+'] / 10.0'
             parinfo[n2_6550_idx]['tied']  = 'p['+str(ha_6565_idx)+'] / 30.0'
-        else:
-            parinfo[n2_6585_idx]['tied']  = ''
-            parinfo[n2_6550_idx]['tied']  = 'p['+str(n2_6585_idx)+'] / 3.0'
 
         # if the [S III] lines are split between MUSE and WFC3 then scale the fixed height ratio by the difference in fwhm.
-        if ((s3_9532_obs > transition_wave) & (s3_9069_obs <= transition_wave)):
-            parinfo[s3_9532_idx]['tied']  = 'p['+str(s3_9069_idx)+'] * 2.48 * p['+str(fwhm_ratio_idx)+']'
-        else:
-            parinfo[s3_9532_idx]['tied']  = 'p['+str(s3_9069_idx)+'] * 2.48'
+        # while the below scaling is correct, the gap between the MUSE and WFC3 (~668 Ang) is larger than the separation between
+        # the [S III] lines (~463 Ang), thus it is not possible to have 9069 in MUSE and 9532 in WFC3 so the scaling is ommitted.
+        # if ((s3_9532_obs > transition_wave) & (s3_9069_obs <= transition_wave)):
+        #     parinfo[s3_9532_idx]['tied']  = 'p['+str(s3_9069_idx)+'] * 2.48 * p['+str(fwhm_ratio_idx)+']'
+        # else:
+        #     parinfo[s3_9532_idx]['tied']  = 'p['+str(s3_9069_idx)+'] * 2.48'
+        parinfo[s3_9532_idx]['value'] = (1.0 / 2.48) # blue line / red line
+        parinfo[s3_9532_idx]['fixed'] = 1
 
         ########################################################################
 
@@ -857,9 +878,8 @@ def fit_obj(input_list):
         '''
         The blocks of code below calculate the flux, error, and equivalent
         width for each emission line. The below function determines these for
-        each line and adds them to the output. There are several groups of lines
-        such as [O III]+HB, and HA+[N II]+[S II] that have special constraints
-        and are handled separately.
+        each line and adds them to the output. There are groups of lines such
+        as HA+[N II] that have special constraints and are handled separately.
         '''
 
         def calculate_emission_line_flux(centroid, amplitude_index, rest_wave):
@@ -897,28 +917,40 @@ def fit_obj(input_list):
         o3_4363_flux, o3_4363_err, o3_4363_ew_obs = calculate_emission_line_flux(o3_4363_obs, o3_4363_idx, o3_4363_vac)
         h2_4686_flux, h2_4686_err, h2_4686_ew_obs = calculate_emission_line_flux(h2_4686_obs, h2_4686_idx, h2_4686_vac)
         hb_4863_flux, hb_4863_err, hb_4863_ew_obs = calculate_emission_line_flux(hb_4863_obs, hb_4863_idx, hb_4863_vac)
-        o3_4959_flux, o3_4959_err, o3_4959_ew_obs = calculate_emission_line_flux(o3_4959_obs, o3_4959_idx, o3_4959_vac) # tied to 1/3 of 5007.
-        o3_5007_flux, o3_5007_err, o3_5007_ew_obs = calculate_emission_line_flux(o3_5007_obs, o3_5007_idx, o3_5007_vac)
-        o1_6300_flux, o1_6300_err, o1_6300_ew_obs = calculate_emission_line_flux(o1_6300_obs, o1_6300_idx, o1_6300_vac)
-        o1_6363_flux, o1_6363_err, o1_6363_ew_obs = calculate_emission_line_flux(o1_6363_obs, o1_6363_idx, o1_6363_vac)
+        #o3_4959_flux, o3_4959_err, o3_4959_ew_obs = calculate_emission_line_flux(o3_4959_obs, o3_4959_idx, o3_4959_vac) # tied to 1/3 of 5007.
+        #o3_5007_flux, o3_5007_err, o3_5007_ew_obs = calculate_emission_line_flux(o3_5007_obs, o3_5007_idx, o3_5007_vac)
+        #o1_6300_flux, o1_6300_err, o1_6300_ew_obs = calculate_emission_line_flux(o1_6300_obs, o1_6300_idx, o1_6300_vac)
+        #o1_6363_flux, o1_6363_err, o1_6363_ew_obs = calculate_emission_line_flux(o1_6363_obs, o1_6363_idx, o1_6363_vac)
         n2_6550_flux, n2_6550_err, n2_6550_ew_obs = calculate_emission_line_flux(n2_6550_obs, n2_6550_idx, n2_6550_vac) # tied to 1/3 of 6585.
         ha_6565_flux, ha_6565_err, ha_6565_ew_obs = calculate_emission_line_flux(ha_6565_obs, ha_6565_idx, ha_6565_vac)
         n2_6585_flux, n2_6585_err, n2_6585_ew_obs = calculate_emission_line_flux(n2_6585_obs, n2_6585_idx, n2_6585_vac)
-        s3_9069_flux, s3_9069_err, s3_9069_ew_obs = calculate_emission_line_flux(s3_9069_obs, s3_9069_idx, s3_9069_vac)
-        s3_9532_flux, s3_9532_err, s3_9532_ew_obs = calculate_emission_line_flux(s3_9532_obs, s3_9532_idx, s3_9532_vac)
+        #s3_9069_flux, s3_9069_err, s3_9069_ew_obs = calculate_emission_line_flux(s3_9069_obs, s3_9069_idx, s3_9069_vac)
+        #s3_9532_flux, s3_9532_err, s3_9532_ew_obs = calculate_emission_line_flux(s3_9532_obs, s3_9532_idx, s3_9532_vac)
         he10830_flux, he10830_err, he10830_ew_obs = calculate_emission_line_flux(he10830_obs, he10830_idx, he10830_vac)
 
-        # confirm that the below handling of Ha + [N II] is correct.
-        # if the lines are measured then add the fluxes.
-        if (ha_6565_flux > 0.0):
-            ha_total_flux   = (ha_6565_flux + (1.33 * n2_6585_flux)) # [N II] 6550 = 1/3 of 6585.
-            ha_total_err    = 1.1 * ha_6565_err # because [N II] / Ha = 0.1 is hard-coded for grism.
-            ha_total_ew_obs = (ha_6565_ew_obs + (1.33 * n2_6585_ew_obs))
-        # if the lines are not detected then return -1.
-        else:
-            ha_total_flux   = ha_6565_flux
-            ha_total_err    = ha_6565_err
-            ha_total_ew_obs = ha_6565_ew_obs
+        # calculate the flux, error, and equivalent width values for halpha and
+        # [N II] separately, which is required because [N II] is 'tied' to halpha
+        # in the grism, and mpfit does not return uncertainties for 'tied' params.
+        if (ha_6565_flux > 0.0): # if HA is detected.
+            if (n2_6585_flux > 0.0): # if [N II] is also detected.
+                if (ha_6565_obs <= transition_wave): # if in muse.
+                    ha_6550_6565_6585_flux   = (n2_6550_flux + ha_6565_flux + n2_6585_flux)
+                    ha_6550_6565_6585_err    = (n2_6550_err + ha_6565_err + n2_6585_err)
+                    ha_6550_6565_6585_ew_obs = (n2_6550_ew_obs + ha_6565_ew_obs + n2_6585_ew_obs)
+                if (ha_6565_obs > transition_wave): # if in wfc3.
+                    ha_6550_6565_6585_flux   = (n2_6550_flux + ha_6565_flux + n2_6585_flux) # could also hard-code as 1.133 * ha_6565_flux.
+                    # [N II] / Ha = 0.133 is hard-coded for grism and errors are not calculated for 'tied' params.
+                    ha_6550_6565_6585_err    = (1.133 * ha_6565_err)
+                    ha_6550_6565_6585_ew_obs = (n2_6550_ew_obs + ha_6565_ew_obs + n2_6585_ew_obs)
+
+            if (n2_6585_flux <= 0.0): # if [N II] is not detected.
+                ha_6550_6565_6585_flux   = ha_6565_flux
+                ha_6550_6565_6585_err    = ha_6565_err
+                ha_6550_6565_6585_ew_obs = n2_6585_ew_obs
+        else: # if the lines are not detected then return -1.
+            ha_6550_6565_6585_flux   = ha_6565_flux
+            ha_6550_6565_6585_err    = ha_6565_err
+            ha_6550_6565_6585_ew_obs = ha_6565_ew_obs
 
         ############################################################################
 
@@ -938,8 +970,9 @@ def fit_obj(input_list):
                     line_flux   = (line_flux_1 + line_flux_2)
                     if (line_flux > 0.0):
                         line_err_1 = line_flux_1 * (np.sqrt(((out.perror[amplitude_index_1] / out.params[amplitude_index_1]) ** 2.0) + ((sig_err / sig) ** 2.0) + covar_term))
-                        line_err_2 = line_flux_2 * (np.sqrt(((out.perror[amplitude_index_2] / out.params[amplitude_index_2]) ** 2.0) + ((sig_err / sig) ** 2.0) + covar_term)) # Same fractional error?
+                        # line_err_2 = line_flux_2 * (np.sqrt(((out.perror[amplitude_index_2] / out.params[amplitude_index_2]) ** 2.0) + ((sig_err / sig) ** 2.0) + covar_term)) # Same fractional error?
                         line_err   = (line_err_1 * (1.0 + 1.0 / out.params[amplitude_index_2])) # check this.
+                        line_err_2 = (line_err - line_err_1) # mpfit doesn't return the required parameter uncertainties for ratios so the error is the total minus the first line.
                     else:
                         w_1 = np.where((lam_spec > (centroid_1 - fwhm_guess)) & (lam_spec < (centroid_1 + fwhm_guess)))
                         line_err_1 = np.sqrt(np.sum(error_spec[w_1] ** 2.0))
@@ -973,36 +1006,41 @@ def fit_obj(input_list):
         # lyman alpha has a half-gaussian wing and the function returns gaussian params so divide the wing amplitude by two to divide the flux in half.
         out.params[la_wing_amp_idx] = (out.params[la_wing_amp_idx] / 2.0)
 
-        la_total_flux, la_total_err, la_total_ew_obs, la_1216_flux, la_1216_err, la_1216_ew_obs, la_wing_flux, la_wing_err, la_wing_ew_obs = \
+        la_1216_wing_flux, la_1216_wing_err, la_1216_wing_ew_obs, la_1216_flux, la_1216_err, la_1216_ew_obs, la_wing_flux, la_wing_err, la_wing_ew_obs = \
         calculate_doublet_line_flux(la_1216_obs, la_1216_idx, la_1216_vac, la_1216_obs, la_wing_amp_idx, la_1216_vac)
 
-        n5_total_flux, n5_total_err, n5_total_ew_obs, n5_1238_flux, n5_1238_err, n5_1238_ew_obs, n5_1242_flux, n5_1242_err, n5_1242_ew_obs = \
+        n5_1238_1242_flux, n5_1238_1242_err, n5_1238_1242_ew_obs, n5_1238_flux, n5_1238_err, n5_1238_ew_obs, n5_1242_flux, n5_1242_err, n5_1242_ew_obs = \
         calculate_doublet_line_flux(n5_1238_obs, n5_1238_idx, n5_1238_vac, n5_1242_obs, n5_1242_idx, n5_1242_vac)
 
-        c4_total_flux, c4_total_err, c4_total_ew_obs, c4_1548_flux, c4_1548_err, c4_1548_ew_obs, c4_1550_flux, c4_1550_err, c4_1550_ew_obs = \
+        c4_1548_1550_flux, c4_1548_1550_err, c4_1548_1550_ew_obs, c4_1548_flux, c4_1548_err, c4_1548_ew_obs, c4_1550_flux, c4_1550_err, c4_1550_ew_obs = \
         calculate_doublet_line_flux(c4_1548_obs, c4_1548_idx, c4_1548_vac, c4_1550_obs, c4_1550_idx, c4_1550_vac)
 
-        # this could be ambiguous with o3_5007 if the 5007+4959 flux were reported so may want to make 'total' labels more explicit.
-        o3_total_flux, o3_total_err, o3_total_ew_obs, o3_1660_flux, o3_1660_err, o3_1660_ew_obs, o3_1666_flux, o3_1666_err, o3_1666_ew_obs = \
+        o3_1660_1666_flux, o3_1660_1666_err, o3_1660_1666_ew_obs, o3_1660_flux, o3_1660_err, o3_1660_ew_obs, o3_1666_flux, o3_1666_err, o3_1666_ew_obs = \
         calculate_doublet_line_flux(o3_1660_obs, o3_1660_idx, o3_1660_vac, o3_1666_obs, o3_1666_idx, o3_1666_vac)
 
-        s3_total_flux, s3_total_err, s3_total_ew_obs, s3_1883_flux, s3_1883_err, s3_1883_ew_obs, s3_1892_flux, s3_1892_err, s3_1892_ew_obs = \
+        s3_1883_1892_flux, s3_1883_1892_err, s3_1883_1892_ew_obs, s3_1883_flux, s3_1883_err, s3_1883_ew_obs, s3_1892_flux, s3_1892_err, s3_1892_ew_obs = \
         calculate_doublet_line_flux(s3_1883_obs, s3_1883_idx, s3_1883_vac, s3_1892_obs, s3_1892_idx, s3_1892_vac)
 
-        c3_total_flux, c3_total_err, c3_total_ew_obs, c3_1907_flux, c3_1907_err, c3_1907_ew_obs, c3_1909_flux, c3_1909_err, c3_1909_ew_obs = \
+        c3_1907_1909_flux, c3_1907_1909_err, c3_1907_1909_ew_obs, c3_1907_flux, c3_1907_err, c3_1907_ew_obs, c3_1909_flux, c3_1909_err, c3_1909_ew_obs = \
         calculate_doublet_line_flux(c3_1907_obs, c3_1907_idx, c3_1907_vac, c3_1909_obs, c3_1909_idx, c3_1909_vac)
 
-        m2_total_flux, m2_total_err, m2_total_ew_obs, m2_2796_flux, m2_2796_err, m2_2796_ew_obs, m2_2803_flux, m2_2803_err, m2_2803_ew_obs = \
+        m2_2796_2803_flux, m2_2796_2803_err, m2_2796_2803_ew_obs, m2_2796_flux, m2_2796_err, m2_2796_ew_obs, m2_2803_flux, m2_2803_err, m2_2803_ew_obs = \
         calculate_doublet_line_flux(m2_2796_obs, m2_2796_idx, m2_2796_vac, m2_2803_obs, m2_2803_idx, m2_2803_vac)
 
-        o2_total_flux, o2_total_err, o2_total_ew_obs, o2_3727_flux, o2_3727_err, o2_3727_ew_obs, o2_3730_flux, o2_3730_err, o2_3730_ew_obs = \
+        o2_3727_3730_flux, o2_3727_3730_err, o2_3727_3730_ew_obs, o2_3727_flux, o2_3727_err, o2_3727_ew_obs, o2_3730_flux, o2_3730_err, o2_3730_ew_obs = \
         calculate_doublet_line_flux(o2_3727_obs, o2_3727_idx, o2_3727_vac, o2_3730_obs, o2_3730_idx, o2_3730_vac)
-        # test.
-        #o1_total_flux, o1_total_err, o1_total_ew_obs, o1_6300_flux, o1_6300_err, o1_6300_ew_obs, o1_6363_flux, o1_6363_err, o1_6363_ew_obs = \
-        #calculate_doublet_line_flux(o1_6300_obs, o1_6300_idx, o1_6300_vac, o1_6363_obs, o1_6363_idx, o1_6363_vac)
 
-        s2_total_flux, s2_total_err, s2_total_ew_obs, s2_6716_flux, s2_6716_err, s2_6716_ew_obs, s2_6731_flux, s2_6731_err, s2_6731_ew_obs = \
+        o3_4959_5007_flux, o3_4959_5007_err, o3_4959_5007_ew_obs, o3_4959_flux, o3_4959_err, o3_4959_ew_obs, o3_5007_flux, o3_5007_err, o3_5007_ew_obs = \
+        calculate_doublet_line_flux(o3_4959_obs, o3_4959_idx, o3_4959_vac, o3_5007_obs, o3_5007_idx, o3_5007_vac)
+
+        o1_6300_6363_flux, o1_6300_6363_err, o1_6300_6363_ew_obs, o1_6300_flux, o1_6300_err, o1_6300_ew_obs, o1_6363_flux, o1_6363_err, o1_6363_ew_obs = \
+        calculate_doublet_line_flux(o1_6300_obs, o1_6300_idx, o1_6300_vac, o1_6363_obs, o1_6363_idx, o1_6363_vac)
+
+        s2_6716_6731_flux, s2_6716_6731_err, s2_6716_6731_ew_obs, s2_6716_flux, s2_6716_err, s2_6716_ew_obs, s2_6731_flux, s2_6731_err, s2_6731_ew_obs = \
         calculate_doublet_line_flux(s2_6716_obs, s2_6716_idx, s2_6716_vac, s2_6731_obs, s2_6731_idx, s2_6731_vac)
+
+        s3_9069_9532_flux, s3_9069_9532_err, s3_9069_9532_ew_obs, s3_9069_flux, s3_9069_err, s3_9069_ew_obs, s3_9532_flux, s3_9532_err, s3_9532_ew_obs = \
+        calculate_doublet_line_flux(s3_9069_obs, s3_9069_idx, s3_9069_vac, s3_9532_obs, s3_9532_idx, s3_9532_vac)
 
         ############################################################################
         ############################################################################
@@ -1027,28 +1065,37 @@ def fit_obj(input_list):
         fit_results['o3_5007_dz']     = out.params[o3_5007_dzx]
         fit_results['s3_he_dz']       = out.params[s3_he_dzx]
 
-        # set this up as a loop using a "loop_results" list and the eval() command.
+        # calculate the flux, error, and equivalent width for each emission line.
         result_lines = [\
-        'la_1216', 'la_wing', 'la_total', \
-        'n5_1238', 'n5_1242', 'n5_total', \
-        'c4_1548', 'c4_1550', 'c4_total', \
+        'la_1216', 'la_wing', 'la_1216_wing', \
+        'n5_1238', 'n5_1242', 'n5_1238_1242', \
+        'c4_1548', 'c4_1550', 'c4_1548_1550', \
         'h2_1640', \
-        'o3_1660', 'o3_1666', 'o3_total', \
-        's3_1883', 's3_1892', 's3_total', \
-        'c3_1907', 'c3_1909', 'c3_total', \
-        'm2_2796', 'm2_2803', 'm2_total', \
-        'o2_3727', 'o2_3730', 'o2_total', \
-        'hg_4342', 'o3_4363', 'h2_4686', \
-        'hb_4863', 'o3_4959', 'o3_5007', \
-        'o1_6300', 'o1_6363', 'n2_6550', \
-        'ha_6565', 'n2_6585', 'ha_total', \
-        's2_6716', 's2_6731', 's2_total', \
-        's3_9069', 's3_9532', 'he10830']
+        'o3_1660', 'o3_1666', 'o3_1660_1666', \
+        's3_1883', 's3_1892', 's3_1883_1892', \
+        'c3_1907', 'c3_1909', 'c3_1907_1909', \
+        'm2_2796', 'm2_2803', 'm2_2796_2803', \
+        'o2_3727', 'o2_3730', 'o2_3727_3730', \
+        'hg_4342', \
+        'o3_4363', \
+        'h2_4686', \
+        'hb_4863', \
+        'o3_4959', 'o3_5007', 'o3_4959_5007', \
+        'o1_6300', 'o1_6363', 'o1_6300_6363', \
+        'n2_6550', 'ha_6565', 'n2_6585', 'ha_6550_6565_6585', \
+        's2_6716', 's2_6731', 's2_6716_6731', \
+        's3_9069', 's3_9532', 's3_9069_9532', 'he10830']
 
         for line in result_lines:
             fit_results[line+'_flux']   = eval(line+'_flux') * scl
             fit_results[line+'_error']  = eval(line+'_err')  * scl
             fit_results[line+'_ew_obs'] = eval(line+'_ew_obs')
+
+            # print the line fluxes and uncertainties to the terminal.
+            # if (fit_results[line+'_flux'] > 0.0):
+            #     perc_error = 100.0 * (fit_results[line+'_error'] / fit_results[line+'_flux'])
+            #     if (len(line+'_flux') < 13):
+            #         print line+'_flux =', '{:.2e}'.format(fit_results[line+'_flux'], 2), ' (+/- '+str(np.around(perc_error, 1))+' %)'
 
     else:
         fit_results = {}
