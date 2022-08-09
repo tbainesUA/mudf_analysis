@@ -93,10 +93,7 @@ s3_9069_vac = 9071.100
 s3_9532_vac = 9533.200
 he10830_vac = 10832.86
 
-# Add separate flag for He II 4646 and use emission line waves in all flags to remove ambiguity.
 # Make all catalog header and data write commands loops over the 'flux_strings' variable.
-# He II flag is currently set to hb and [O III] 4363 shares flag with hg.
-
 supported_lines = [\
 la_1216_vac, n5_1238_vac, c4_1548_vac, h2_1640_vac, o3_1660_vac, s3_1883_vac, \
 c3_1907_vac, m2_2796_vac, o2_3727_vac, hg_4342_vac, o3_4363_vac, h2_4686_vac, \
@@ -109,10 +106,16 @@ r'Ly$\alpha$', 'N V', 'C IV', 'He II', 'O III]', 'Si III]', \
 r'H$\beta$', '[O III]', '[O I]', r'H$\alpha$', '[S II]', '[S III]', \
 '[S III]', 'He I']
 
+# flux_strings = [\
+# 'la_total', 'n5_total', 'c4_total', 'h2_1640', 'o3_total', 's3_total', \
+# 'c3_total', 'm2_total', 'o2_total', 'hg_4342', 'o3_4363', 'h2_4686', \
+# 'hb_4863', 'o3_5007', 'o1_6300', 'ha_total', 's2_total', 's3_9069', \
+# 's3_9532', 'he10830']
+
 flux_strings = [\
-'la_total', 'n5_total', 'c4_total', 'h2_1640', 'o3_total', 's3_total', \
-'c3_total', 'm2_total', 'o2_total', 'hg_4342', 'o3_4363', 'h2_4686', \
-'hb_4863', 'o3_5007', 'o1_6300', 'ha_total', 's2_total', 's3_9069', \
+'la_1216_wing', 'n5_1238_1242', 'c4_1548_1550', 'h2_1640', 'o3_1660_1666', 's3_1883_1892', \
+'c3_1907_1909', 'm2_2796_2803', 'o2_3727_3730', 'hg_4342', 'o3_4363', 'h2_4686', \
+'hb_4863', 'o3_4959_5007', 'o1_6300_6363', 'ha_6550_6565_6585', 's2_6716_6731', 's3_9069', \
 's3_9532', 'he10830']
 
 # these lines are close to their doublets so are not plotted in ax1.
@@ -2002,21 +2005,41 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         cat.write('#20 o3_5007_dz \n')
         cat.write('#21 s3_he_dz \n')
 
+        # result_lines = [\
+        # 'la_1216', 'la_wing', 'la_total', \
+        # 'n5_1238', 'n5_1242', 'n5_total', \
+        # 'c4_1548', 'c4_1550', 'c4_total', \
+        # 'h2_1640', \
+        # 'o3_1660', 'o3_1666', 'o3_total', \
+        # 's3_1883', 's3_1892', 's3_total', \
+        # 'c3_1907', 'c3_1909', 'c3_total', \
+        # 'm2_2796', 'm2_2803', 'm2_total', \
+        # 'o2_3727', 'o2_3730', 'o2_total', \
+        # 'hg_4342', 'o3_4363', 'h2_4686', \
+        # 'hb_4863', 'o3_4959', 'o3_5007', \
+        # 'o1_6300', 'o1_6363', 'n2_6550', \
+        # 'ha_6565', 'n2_6585', 'ha_total', \
+        # 's2_6716', 's2_6731', 's2_total', \
+        # 's3_9069', 's3_9532', 'he10830']
+
         result_lines = [\
-        'la_1216', 'la_wing', 'la_total', \
-        'n5_1238', 'n5_1242', 'n5_total', \
-        'c4_1548', 'c4_1550', 'c4_total', \
+        'la_1216', 'la_wing', 'la_1216_wing', \
+        'n5_1238', 'n5_1242', 'n5_1238_1242', \
+        'c4_1548', 'c4_1550', 'c4_1548_1550', \
         'h2_1640', \
-        'o3_1660', 'o3_1666', 'o3_total', \
-        's3_1883', 's3_1892', 's3_total', \
-        'c3_1907', 'c3_1909', 'c3_total', \
-        'm2_2796', 'm2_2803', 'm2_total', \
-        'o2_3727', 'o2_3730', 'o2_total', \
-        'hg_4342', 'o3_4363', 'h2_4686', \
-        'hb_4863', 'o3_4959', 'o3_5007', \
-        'o1_6300', 'o1_6363', 'n2_6550', \
-        'ha_6565', 'n2_6585', 'ha_total', \
-        's2_6716', 's2_6731', 's2_total', \
+        'o3_1660', 'o3_1666', 'o3_1660_1666', \
+        's3_1883', 's3_1892', 's3_1883_1892', \
+        'c3_1907', 'c3_1909', 'c3_1907_1909', \
+        'm2_2796', 'm2_2803', 'm2_2796_2803', \
+        'o2_3727', 'o2_3730', 'o2_3727_3730', \
+        'hg_4342', \
+        'o3_4363', \
+        'h2_4686', \
+        'hb_4863', \
+        'o3_4959', 'o3_5007', 'o3_4959_5007', \
+        'o1_6300', 'o1_6363', 'o1_6300_6363', \
+        'n2_6550', 'ha_6565', 'n2_6585', 'ha_6550_6565_6585', \
+        's2_6716', 's2_6731', 's2_6716_6731', \
         's3_9069', 's3_9532', 'he10830']
 
         results_idx = 22
@@ -2075,9 +2098,9 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>13.2e}'.format(fitresults['la_wing_error']) + \
         '{:>13.2e}'.format(fitresults['la_wing_ew_obs']) +\
         '{:>6d}'.format(contamflags['la_1216']) +\
-        '{:>13.2e}'.format(fitresults['la_total_flux']) + \
-        '{:>13.2e}'.format(fitresults['la_total_error']) + \
-        '{:>13.2e}'.format(fitresults['la_total_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['la_1216_wing_flux']) + \
+        '{:>13.2e}'.format(fitresults['la_1216_wing_error']) + \
+        '{:>13.2e}'.format(fitresults['la_1216_wing_ew_obs']) +\
         '{:>6d}'.format(contamflags['la_1216']) +\
         '{:>13.2e}'.format(fitresults['n5_1238_flux'])  + \
         '{:>13.2e}'.format(fitresults['n5_1238_error']) +  \
@@ -2087,9 +2110,9 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>13.2e}'.format(fitresults['n5_1242_error']) +  \
         '{:>13.2e}'.format(fitresults['n5_1242_ew_obs']) +\
         '{:>6d}'.format(contamflags['n5_1242']) +\
-        '{:>13.2e}'.format(fitresults['n5_total_flux'])  + \
-        '{:>13.2e}'.format(fitresults['n5_total_error']) +  \
-        '{:>13.2e}'.format(fitresults['n5_total_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['n5_1238_1242_flux'])  + \
+        '{:>13.2e}'.format(fitresults['n5_1238_1242_error']) +  \
+        '{:>13.2e}'.format(fitresults['n5_1238_1242_ew_obs']) +\
         '{:>6d}'.format(np.max([contamflags['n5_1238'], contamflags['n5_1242']])) +\
         '{:>13.2e}'.format(fitresults['c4_1548_flux'])  + \
         '{:>13.2e}'.format(fitresults['c4_1548_error']) +  \
@@ -2099,9 +2122,9 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>13.2e}'.format(fitresults['c4_1550_error']) +  \
         '{:>13.2e}'.format(fitresults['c4_1550_ew_obs']) +\
         '{:>6d}'.format(contamflags['c4_1550']) +\
-        '{:>13.2e}'.format(fitresults['c4_total_flux'])  + \
-        '{:>13.2e}'.format(fitresults['c4_total_error']) +  \
-        '{:>13.2e}'.format(fitresults['c4_total_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['c4_1548_1550_flux'])  + \
+        '{:>13.2e}'.format(fitresults['c4_1548_1550_error']) +  \
+        '{:>13.2e}'.format(fitresults['c4_1548_1550_ew_obs']) +\
         '{:>6d}'.format(np.max([contamflags['c4_1548'], contamflags['c4_1550']])) +\
         '{:>13.2e}'.format(fitresults['h2_1640_flux'])  + \
         '{:>13.2e}'.format(fitresults['h2_1640_error']) +  \
@@ -2115,9 +2138,9 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>13.2e}'.format(fitresults['o3_1666_error']) +  \
         '{:>13.2e}'.format(fitresults['o3_1666_ew_obs']) +\
         '{:>6d}'.format(contamflags['o3_1666']) +\
-        '{:>13.2e}'.format(fitresults['o3_total_flux'])  + \
-        '{:>13.2e}'.format(fitresults['o3_total_error']) +  \
-        '{:>13.2e}'.format(fitresults['o3_total_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['o3_1660_1666_flux'])  + \
+        '{:>13.2e}'.format(fitresults['o3_1660_1666_error']) +  \
+        '{:>13.2e}'.format(fitresults['o3_1660_1666_ew_obs']) +\
         '{:>6d}'.format(np.max([contamflags['o3_1660'], contamflags['o3_1666']])) +\
         '{:>13.2e}'.format(fitresults['s3_1883_flux'])  + \
         '{:>13.2e}'.format(fitresults['s3_1883_error']) +  \
@@ -2127,9 +2150,9 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>13.2e}'.format(fitresults['s3_1892_error']) +  \
         '{:>13.2e}'.format(fitresults['s3_1892_ew_obs']) +\
         '{:>6d}'.format(contamflags['s3_1892']) +\
-        '{:>13.2e}'.format(fitresults['s3_total_flux'])  + \
-        '{:>13.2e}'.format(fitresults['s3_total_error']) +  \
-        '{:>13.2e}'.format(fitresults['s3_total_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['s3_1883_1892_flux'])  + \
+        '{:>13.2e}'.format(fitresults['s3_1883_1892_error']) +  \
+        '{:>13.2e}'.format(fitresults['s3_1883_1892_ew_obs']) +\
         '{:>6d}'.format(np.max([contamflags['s3_1883'], contamflags['s3_1892']])) +\
         '{:>13.2e}'.format(fitresults['c3_1907_flux'])  + \
         '{:>13.2e}'.format(fitresults['c3_1907_error']) +  \
@@ -2139,9 +2162,9 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>13.2e}'.format(fitresults['c3_1909_error']) +  \
         '{:>13.2e}'.format(fitresults['c3_1909_ew_obs']) +\
         '{:>6d}'.format(contamflags['c3_1909']) +\
-        '{:>13.2e}'.format(fitresults['c3_total_flux'])  + \
-        '{:>13.2e}'.format(fitresults['c3_total_error']) +  \
-        '{:>13.2e}'.format(fitresults['c3_total_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['c3_1907_1909_flux'])  + \
+        '{:>13.2e}'.format(fitresults['c3_1907_1909_error']) +  \
+        '{:>13.2e}'.format(fitresults['c3_1907_1909_ew_obs']) +\
         '{:>6d}'.format(np.max([contamflags['c3_1907'], contamflags['c3_1909']])) +\
         '{:>13.2e}'.format(fitresults['m2_2796_flux'])  + \
         '{:>13.2e}'.format(fitresults['m2_2796_error']) +  \
@@ -2151,9 +2174,9 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>13.2e}'.format(fitresults['m2_2803_error']) +  \
         '{:>13.2e}'.format(fitresults['m2_2803_ew_obs']) +\
         '{:>6d}'.format(contamflags['m2_2803']) +\
-        '{:>13.2e}'.format(fitresults['m2_total_flux'])  + \
-        '{:>13.2e}'.format(fitresults['m2_total_error']) +  \
-        '{:>13.2e}'.format(fitresults['m2_total_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['m2_2796_2803_flux'])  + \
+        '{:>13.2e}'.format(fitresults['m2_2796_2803_error']) +  \
+        '{:>13.2e}'.format(fitresults['m2_2796_2803_ew_obs']) +\
         '{:>6d}'.format(np.max([contamflags['m2_2796'], contamflags['m2_2803']])) +\
         '{:>13.2e}'.format(fitresults['o2_3727_flux'])  + \
         '{:>13.2e}'.format(fitresults['o2_3727_error']) +  \
@@ -2163,9 +2186,9 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>13.2e}'.format(fitresults['o2_3730_error']) +  \
         '{:>13.2e}'.format(fitresults['o2_3730_ew_obs']) +\
         '{:>6d}'.format(contamflags['o2_3730']) +\
-        '{:>13.2e}'.format(fitresults['o2_total_flux'])  + \
-        '{:>13.2e}'.format(fitresults['o2_total_error']) +  \
-        '{:>13.2e}'.format(fitresults['o2_total_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['o2_3727_3730_flux'])  + \
+        '{:>13.2e}'.format(fitresults['o2_3727_3730_error']) +  \
+        '{:>13.2e}'.format(fitresults['o2_3727_3730_ew_obs']) +\
         '{:>6d}'.format(np.max([contamflags['o2_3727'], contamflags['o2_3730']])) +\
         '{:>13.2e}'.format(fitresults['hg_4342_flux']) +\
         '{:>13.2e}'.format(fitresults['hg_4342_error']) + \
@@ -2191,6 +2214,10 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>13.2e}'.format(fitresults['o3_5007_error']) + \
         '{:>13.2e}'.format(fitresults['o3_5007_ew_obs']) +\
         '{:>6d}'.format(contamflags['o3_5007']) +\
+        '{:>13.2e}'.format(fitresults['o3_4959_5007_flux'])  + \
+        '{:>13.2e}'.format(fitresults['o3_4959_5007_error']) +  \
+        '{:>13.2e}'.format(fitresults['o3_4959_5007_ew_obs']) +\
+        '{:>6d}'.format(np.max([contamflags['o3_4959'], contamflags['o3_5007']])) +\
         '{:>13.2e}'.format(fitresults['o1_6300_flux'])  + \
         '{:>13.2e}'.format(fitresults['o1_6300_error']) +  \
         '{:>13.2e}'.format(fitresults['o1_6300_ew_obs']) +\
@@ -2199,6 +2226,10 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>13.2e}'.format(fitresults['o1_6363_error']) +  \
         '{:>13.2e}'.format(fitresults['o1_6363_ew_obs']) +\
         '{:>6d}'.format(contamflags['o1_6363']) +\
+        '{:>13.2e}'.format(fitresults['o1_6300_6363_flux'])  + \
+        '{:>13.2e}'.format(fitresults['o1_6300_6363_error']) +  \
+        '{:>13.2e}'.format(fitresults['o1_6300_6363_ew_obs']) +\
+        '{:>6d}'.format(np.max([contamflags['o1_6300'], contamflags['o1_6363']])) +\
         '{:>13.2e}'.format(fitresults['n2_6550_flux'])  + \
         '{:>13.2e}'.format(fitresults['n2_6550_error']) +  \
         '{:>13.2e}'.format(fitresults['n2_6550_ew_obs']) +\
@@ -2211,9 +2242,9 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>13.2e}'.format(fitresults['n2_6585_error']) +  \
         '{:>13.2e}'.format(fitresults['n2_6585_ew_obs']) +\
         '{:>6d}'.format(contamflags['n2_6585']) +\
-        '{:>13.2e}'.format(fitresults['ha_total_flux']) + \
-        '{:>13.2e}'.format(fitresults['ha_total_error']) + \
-        '{:>13.2e}'.format(fitresults['ha_total_ew_obs']) + \
+        '{:>13.2e}'.format(fitresults['ha_6550_6565_6585_flux']) + \
+        '{:>13.2e}'.format(fitresults['ha_6550_6565_6585_error']) + \
+        '{:>13.2e}'.format(fitresults['ha_6550_6565_6585_ew_obs']) + \
         '{:>6d}'.format(np.max([contamflags['ha_6565'], contamflags['n2_6585']])) +\
         '{:>13.2e}'.format(fitresults['s2_6716_flux'])  + \
         '{:>13.2e}'.format(fitresults['s2_6716_error']) +  \
@@ -2223,9 +2254,9 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>13.2e}'.format(fitresults['s2_6731_error']) +  \
         '{:>13.2e}'.format(fitresults['s2_6731_ew_obs']) +\
         '{:>6d}'.format(contamflags['s2_6731']) +\
-        '{:>13.2e}'.format(fitresults['s2_total_flux']) + \
-        '{:>13.2e}'.format(fitresults['s2_total_error']) + \
-        '{:>13.2e}'.format(fitresults['s2_total_ew_obs']) +\
+        '{:>13.2e}'.format(fitresults['s2_6716_6731_flux']) + \
+        '{:>13.2e}'.format(fitresults['s2_6716_6731_error']) + \
+        '{:>13.2e}'.format(fitresults['s2_6716_6731_ew_obs']) +\
         '{:>6d}'.format(np.max([contamflags['s2_6716'], contamflags['s2_6731']])) +\
         '{:>13.2e}'.format(fitresults['s3_9069_flux']) + \
         '{:>13.2e}'.format(fitresults['s3_9069_error']) + \
