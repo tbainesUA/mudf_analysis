@@ -245,6 +245,7 @@ def print_help_message():
     msg += setcolors['helpmsg'] + "\tz = enter a different z guess\n" \
         "\tw = enter a different emission line wavelength guess\n" \
         "\tha,  or hb, o31, o32, o2, s2, s31, s32 = change redshift guess\n" \
+        "\tdz = change the allowable redshift difference between lines\n" \
         "\tn = skip to next brightest line found in this object\n\n"
     msg += setcolors['heading'] + "\tSPECTRUM SPECIFIC OPTIONS:\n"
     msg += setcolors['helpmsg'] + "\tfw = change the fwhm guess in pixels\n" \
@@ -590,7 +591,7 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     snr_muse_idx = np.flip(np.argsort(snr_muse, axis=0))
 
     # loop over lines with s/n > 3 and create zoom-in plots.
-    for x in range(num_gridspec_plots+1):
+    for x in range(num_gridspec_plots):
         #print 'x =', x
         if (snr_muse[snr_muse_idx[x]][0] >= 3.0):
 
@@ -707,7 +708,7 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     fig.savefig(plotfilename)
     plt.draw()
 
-    #if (verbose == True): print('Exiting plot_object...\n') # MDR 2022/05/17
+    if (verbose == True): print('Exiting plot_object...\n') # MDR 2022/05/17
 
 
 def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zeros, g141zeros, linelistoutfile, commentsfile, remaining, allobjects, show_dispersed=True, stored_fits = False, path_to_wisp_data = ' '):
@@ -1049,6 +1050,15 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             print_prompt("The current fwhm_fit is:  " + str(fitresults['fwhm_g141'] / config_pars['dispersion_red']) + " and 2*A_image is: " + str(2 * a_image[0]))
             try:
                 fwhm_guess = config_pars['dispersion_red'] * float(raw_input("> "))
+            except ValueError:
+                print_prompt('Invalid Entry.')
+
+        # change delta_z range
+        elif option.strip().lower() == 'dz':
+            print_prompt("Enter a new delta_z limit")
+            print_prompt("The current delta_z is:  " + str(config_pars['delta_z']))
+            try:
+                config_pars['delta_z'] = float(raw_input("> "))
             except ValueError:
                 print_prompt('Invalid Entry.')
 
@@ -1966,7 +1976,7 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         'o1_6300', 'o1_6363', 'o1_6300_6363', \
         'n2_6550', 'ha_6565', 'n2_6585', 'ha_6550_6565_6585', \
         's2_6716', 's2_6731', 's2_6716_6731', \
-        's3_9069', 's3_9532', 'he10830']
+        's3_9069', 's3_9532', 's3_9069_9532', 'he10830']
 
         results_idx = 22
 
@@ -2176,6 +2186,10 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>13.2e}'.format(fitresults['s3_9532_error']) + \
         '{:>13.2e}'.format(fitresults['s3_9532_ew_obs']) +\
         '{:>6d}'.format(contamflags['s3_9532']) +\
+        '{:>13.2e}'.format(fitresults['s3_9069_9532_flux']) + \
+        '{:>13.2e}'.format(fitresults['s3_9069_9532_error']) + \
+        '{:>13.2e}'.format(fitresults['s3_9069_9532_ew_obs']) +\
+        '{:>6d}'.format(np.max([contamflags['s3_9069'], contamflags['s3_9532']])) +\
         '{:>13.2e}'.format(fitresults['he10830_flux']) + \
         '{:>13.2e}'.format(fitresults['he10830_error']) + \
         '{:>13.2e}'.format(fitresults['he10830_ew_obs']) +\
