@@ -291,7 +291,8 @@ def check_masked_lines(fitresults, snr_meas_array, spdata):
 def comment_out_obj(par, obj, catalogname):
     if (verbose == True): print('Running comment_out_obj...\n') # MDR 2022/05/17
     # if a row already exists for this object, comment it out
-    objstr = '{:<8d}'.format(par) + '{:<6d}'.format(obj)
+    # objstr = '{:<8d}'.format(par) + '{:<6d}'.format(obj)
+    objstr = '{:<6d}'.format(obj)
     if os.path.exists(catalogname):
         for line in fileinput.input(catalogname, inplace=True):
             if objstr in line:
