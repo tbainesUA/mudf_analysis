@@ -94,31 +94,22 @@ s3_9532_vac = 9533.200
 he10830_vac = 10832.86
 
 # Make all catalog header and data write commands loops over the 'flux_strings' variable.
+
+'''
+Note that the code expects that the strings in 'flux_strings' to match those in
+'fitresults' with +'_flux' appended. This way the results can be looped over.
+All emission line labels and parameters are defined at the top of the code,
+except for the contamination flags, which must be defined within a function so
+they reset for each object.
+'''
+
 supported_lines = [\
 la_1216_vac, n5_1238_vac, c4_1548_vac, h2_1640_vac, o3_1660_vac, s3_1883_vac, \
 c3_1907_vac, m2_2796_vac, o2_3727_vac, hg_4342_vac, o3_4363_vac, h2_4686_vac, \
 hb_4863_vac, o3_5007_vac, o1_6300_vac, ha_6565_vac, s2_6716_vac, s3_9069_vac, \
 s3_9532_vac, he10830_vac]
 
-supported_lines_strings = [\
-r'Ly$\alpha$', 'N V', 'C IV', 'He II', 'O III]', 'Si III]', \
-'C III]', 'Mg II', '[O II]', r'H$\gamma$', '[O III]', 'He II', \
-r'H$\beta$', '[O III]', '[O I]', r'H$\alpha$', '[S II]', '[S III]', \
-'[S III]', 'He I']
-
-# flux_strings = [\
-# 'la_total', 'n5_total', 'c4_total', 'h2_1640', 'o3_total', 's3_total', \
-# 'c3_total', 'm2_total', 'o2_total', 'hg_4342', 'o3_4363', 'h2_4686', \
-# 'hb_4863', 'o3_5007', 'o1_6300', 'ha_total', 's2_total', 's3_9069', \
-# 's3_9532', 'he10830']
-
-flux_strings = [\
-'la_1216_wing', 'n5_1238_1242', 'c4_1548_1550', 'h2_1640', 'o3_1660_1666', 's3_1883_1892', \
-'c3_1907_1909', 'm2_2796_2803', 'o2_3727_3730', 'hg_4342', 'o3_4363', 'h2_4686', \
-'hb_4863', 'o3_4959_5007', 'o1_6300_6363', 'ha_6550_6565_6585', 's2_6716_6731', 's3_9069', \
-'s3_9532', 'he10830']
-
-# these lines are close to their doublets so are not plotted in ax1.
+# These lines are close to their doublets so are not plotted in ax1.
 # However, their fluxes and fitresults are still saved to the catalog.
 supported_lines_extra = [\
 n5_1242_vac, c4_1550_vac, \
@@ -126,8 +117,18 @@ o3_1666_vac, s3_1892_vac, c3_1909_vac, \
 m2_2803_vac, o2_3730_vac, o3_4959_vac, o1_6363_vac, \
 n2_6550_vac, n2_6585_vac, s2_6731_vac]
 
-# contam_flags_string = \
-# 'lya,n5,c4,he2,o3uv,s3,c3,m2,o2,hg,hb,o3,o1,ha,s2,s31,s32,he1,c(ontinuum)'
+supported_lines_strings = [\
+r'Ly$\alpha$', 'N V', 'C IV', 'He II', 'O III]', 'Si III]', \
+'C III]', 'Mg II', '[O II]', r'H$\gamma$', '[O III]', 'He II', \
+r'H$\beta$', '[O III]', '[O I]', r'H$\alpha$', '[S II]', '[S III]', \
+'[S III]', 'He I']
+
+flux_strings = [\
+'la_1216_wing', 'n5_1238_1242', 'c4_1548_1550', 'h2_1640', 'o3_1660_1666', 's3_1883_1892', \
+'c3_1907_1909', 'm2_2796_2803', 'o2_3727_3730', 'hg_4342', 'o3_4363', 'h2_4686', \
+'hb_4863', 'o3_4959_5007', 'o1_6300_6363', 'ha_6550_6565_6585', 's2_6716_6731', 's3_9069', \
+'s3_9532', 'he10830']
+
 contam_flags_string = \
 'la_1216, n5_1238, n5_1242, c4_1548, c4_1550, h2_1640, \
 o3_1660, o3_1666, s3_1883, s3_1892, c3_1907, c3_1909, \
@@ -135,42 +136,6 @@ m2_2796, m2_2803, o2_3727, o2_3730, hg_4342, o3_4363, \
 h2_4686, hb_4863, o3_4959, o3_5007, o1_6300, o1_6363, \
 n2_6550, ha_6565, n2_6585, s2_6716, s2_6731, s3_9069, \
 s3_9532, he10830, cont'
-
-# supported_lines = [\
-# la_1216_vac, n5_1238_vac, n5_1242_vac, c4_1548_vac, c4_1550_vac, h2_1640_vac, \
-# o3_1660_vac, o3_1666_vac, s3_1883_vac, s3_1892_vac, c3_1907_vac, c3_1909_vac, \
-# m2_2796_vac, m2_2803_vac, o2_3727_vac, o2_3730_vac, hg_4342_vac, o3_4363_vac, \
-# h2_4686_vac, hb_4863_vac, o3_4959_vac, o3_5007_vac, o1_6300_vac, o1_6363_vac, \
-# n2_6550_vac, ha_6565_vac, n2_6585_vac, s2_6716_vac, s2_6731_vac, s3_9069_vac, \
-# s3_9532_vac, he10830_vac]
-#
-# supported_lines_strings = [\
-# r'Ly$\alpha$', 'N V', 'N V', 'C IV', 'C IV', 'He II', \
-# 'O III]', 'O III]', 'Si III]', 'Si III]', 'C III]', 'C III]', \
-# 'Mg II', 'Mg II', '[O II]', '[O II]', r'H$\gamma$', '[O III]', \
-# 'He II', r'H$\beta$', '[O III]', '[O III]', '[O I]', '[O I]', \
-# '[N II]', r'H$\alpha$', '[N II]', '[S II]', '', '[S III]', \
-# '[S III]', 'He I']
-#
-# flux_strings = [\
-# 'la_1216', 'n5_1238', 'n5_1242', 'c4_1548', 'c4_1550', 'h2_1640', \
-# 'o3_1660', 'o3_1666', 's3_1883', 's3_1892', 'c3_1907', 'c3_1909', \
-# 'm2_2796', 'm2_2803', 'o2_3727', 'o2_3730', 'hg_4342', 'o3_4363', \
-# 'h2_4686', 'hb_4863', 'o3_4959', 'o3_5007', 'o1_6300', 'o1_6363', \
-# 'n2_6550', 'ha_6565', 'n2_6585', 's2_6716', 's2_6731', 's3_9069', \
-# 's3_9532', 'he10830']
-#
-# supported_lines_extra_strings = [\
-# 'n5_1242', 'c4_1550', \
-# 'o3_1666', 's3_1892', 'c3_1909', \
-# 'm2_2803', 'o2_3730', 'o3_4959', 'o1_6363', \
-# 'n2_6550', 'n2_6585', 's2_6731']
-
-### Notes ###
-# expected strings from 'fitresults' are each element in the 'flux_strings' list +'_flux'.
-#update below in code, must be locally defined to reset for each object.
-#contamflags = {'lya':0, 'o2':0, 'hg':0, 'hb':0, 'o3':0, 'o1':0, 'ha':0, 's2':0, 's31':0, 's32':0, 'he1':0} # M.D.R 01/06/2021
-### Notes ###
 
 # colors to help split up terminal output
 # helpmsg = light blue
@@ -468,6 +433,7 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     ymin = -0.2 * np.ma.max(spec_val)
     ymax = 1.2 * np.ma.max(spec_val)
 
+    # the line widths for the data and overlaid fit.
     lw_data = 2.0
     lw_fits = 1.75
 
@@ -510,8 +476,7 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     spec_zero_mild[w] = 1.
     for ax in [ax1, ax2]:
         # use data coordinates for x-axis and axes coords for y-axis
-        trans = mtransforms.blended_transform_factory(
-            ax.transData, ax.transAxes)
+        trans = mtransforms.blended_transform_factory(ax.transData, ax.transAxes)
         if np.any(spec_zero_bad[spec_zero_bad != -1]):
             ax.fill_between(spec_lam, 0, 1, where=spec_zero_bad == 1,
                             color='red', alpha=0.3, transform=trans,
@@ -557,8 +522,7 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
 
     # indicate "current" line
 #    current_lam = lamlines_found[index_of_strongest_line]
-    current_cont = contmodel[
-        np.argmin(np.abs(np.ma.compressed(masked_spec_lam) - current_lam))]
+    current_cont = contmodel[np.argmin(np.abs(np.ma.compressed(masked_spec_lam) - current_lam))]
     ax1.plot(current_lam, current_cont, 'ro', ms=10)
 
     ax1.set_xlabel('Observed Wavelength ($\AA$)', size='xx-large')
@@ -575,7 +539,6 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     s2n = s2n[mask]
     s2n_lam = s2n_lam[mask]
     ax2.plot(s2n_lam, s2n, 'k-', linestyle='steps', lw=lw_data)
-    #ymin = s2n.min()
     ymin = -0.2 * s2n.max()
     ymax = 1.2 * s2n.max() #ymax = 1.5 * s2n.max() # M.D.R 01/07/2021
     ax2.axhline(y=config_pars['n_sigma_above_cont'], c='r')
@@ -590,7 +553,6 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     # fig = plt.gcf() a
 
     # - M.D.R. - 10/22/2020
-    #import numpy
     # find max S/N in list of detected lines.
     # pull index location, determine lambda of that line.
     # set ymin/max based on centroid +/-i range based on dispersion.
@@ -649,7 +611,6 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
             xmin = lam_i-half_xrange_ang
             xmax = lam_i+half_xrange_ang
 
-            #ymin = -0.05*1.2*np.max(spec_val[snr_muse_idy-half_xrange_pix:snr_muse_idy+half_xrange_pix])
             # update to a sigma rejected min?
             ymin = 0.9*np.min(spec_val[snr_muse_idy-half_xrange_pix:snr_muse_idy+half_xrange_pix])
             ymax = 1.2*np.max(spec_val[snr_muse_idy-half_xrange_pix:snr_muse_idy+half_xrange_pix])
@@ -871,17 +832,11 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
     index_of_strongest_line = 0
     lamline = lamlines_found[index_of_strongest_line]
 
-    ###
     # MDR 2022/06/10 - Changed the first guess line to [O II] for MUSE.
     #zguess = lamline / ha_6565_vac - 1
     zguess = lamline / ((o2_3727_vac + o2_3730_vac) / 2.0) - 1.0
     # fwhm is defined for the red side, regardless of where line is
-    # MDR 2022/06/10 - the fwhm_guess is almost always too large for MUSE so use sigma instead of fwhm.
-    #fwhm_guess = a_image * config_pars['dispersion_red']
-    # MDR 2022/07/11 - I was using a red dispersion too large by 2.1x b/c Nor's data is super sampled so return to fwhm.
     fwhm_guess = 2.35 * a_image * config_pars['dispersion_red']
-    ###
-
 
     if stored_fits != False:
         first_stored_fit = stored_fits[0]
@@ -898,7 +853,6 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         ### also need to figure out what else to add?
             ### config pars for nodes can also be entered here.
 
-
 ### replace this with printouts from pickle files
 
     # print object info to screen
@@ -910,13 +864,8 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         print_prompt("\nWhat would you like to do with this object?\nSee the README for options, or type 'h' to print them all to the screen.")
 
     comment = ''
-#    contamflags = {'o2':0, 'hg':0, 'hb':0, 'o3':0, 'ha':0, 's2':0, 's31':0, \
-                   #'s32':0, 'he1':0} # M.D.R 01/06/2021
-    # set this to loop over flags created at top of code.
-    # contamflags = {'lya':0, 'n5':0, 'c4':0, 'he2':0, 'o3uv':0, 's3':0, 'c3':0, \
-    # 'm2':0, 'o2':0, 'hg':0, 'hb':0, 'o3':0, 'o1':0, 'ha':0, 's2':0, 's31':0, \
-    # 's32':0, 'he1':0} # M.D.R 01/06/2021
 
+    # set this to loop over flags created at top of code.
     contamflags = {\
     'la_1216':0, 'n5_1238':0, 'n5_1242':0, 'c4_1548':0, 'c4_1550':0, 'h2_1640':0, \
     'o3_1660':0, 'o3_1666':0, 's3_1883':0, 's3_1892':0, 'c3_1907':0, 'c3_1909':0, \
@@ -925,14 +874,12 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
     'n2_6550':0, 'ha_6565':0, 'n2_6585':0, 's2_6716':0, 's2_6731':0, 's3_9069':0, \
     's3_9532':0, 'he10830':0, 'cont':0} # MDR 2022/07/22
 
-
     # Skip if previous fit is to be accepted
     done = 0 if rejectPrevFit else 1
     fast_fit = False # MDR 2022/06/30 - move to configuration file?
 
     while (done == 0):
         # sticking with the while loop to determine whether user is finished with object
-
         # get spectrum for obj. do this every time because sometimes we
         # re-read with a mask or a different transition wavelength
         spdata = trim_spec(tab_blue, tab_red, config_pars, mask_zeros=True, return_masks=True)
@@ -958,15 +905,19 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         fitpars_nolines = cp.deepcopy(fitpars)
 
         ############################################################################
-        ############################################################################
-        #fitpars_nolines[9:19] = 0. # Should be 21 with lya? MDR 2022/05/31 - Yes setting lines = 0 for continuum model?
-        # THE SECOND INDEX IN THE BELOW LINE MUST BE EQUAL TO THE VALUE OF 'first_node_index' IN FITTING.PY # MDR 2022/06/03
+        '''
+        The model parameters for the emission line amplitudes must be set to zero
+        for the continuum fit, while the values for the line ratios must be non-zero
+        to avoid division by zero. The 'get_fitpar_indices()' and 'get_ratio_indices()'
+        functions below are defined in fitting.py to send these model parameter indices
+        back to measure_z_interactive().
+        '''
         first_line_index, first_node_index = get_fitpar_indices()
-        fitpars_nolines[first_line_index:first_node_index] = 0. # MDR 2022/06/03 # UPDATE THESE THREE LINES ONCE FITTING.PY REFACTORING IS COMPLETE. MDR 2022/06/01
-        #ratio_indices = get_ratio_indices()
+
+        fitpars_nolines[first_line_index:first_node_index] = 0.
+
         for idx in get_ratio_indices():
             fitpars_nolines[idx] = 1.0
-        ############################################################################
         ############################################################################
 
         fitmodel = emissionline_model(fitpars, np.ma.compressed(masked_spec_lam)) * fitresults['scl_factor']
@@ -998,7 +949,6 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         err_lines = np.array(err_lines)
 
         # calculate a weighted s/n ratio for all lines and print on the plot.
-
         #signal_lines = np.array([fitresults['o2_total_flux'], fitresults['hg_4342_flux'], fitresults['hb_4863_flux'],fitresults['ha_total_flux'], fitresults['s2_total_flux']])
         #err_lines   = np.array([fitresults['o2_total_error'], fitresults['hg_4342_error'], fitresults['hb_4863_error'], fitresults['ha_total_error'], fitresults['s2_total_error']])
 
@@ -1364,7 +1314,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         elif option.strip().lower() == 'dr':
             reloadReg()
 
-        ### new options dealing with iterating objects ###
+        # new options dealing with iterating objects
         # can't actually go back or choose another object now,
         # but allow for them now just in case
         elif option.strip().lower() == 'b':
@@ -1448,7 +1398,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
 
 def check_input_objid(objlist, objid, nextup):
     if (verbose == True): print('\nRunning check_input_objid...\n') # MDR 2022/05/17
-    """ """
+
     fulllist = ', '.join(['%i' % o for o in objlist])
     if objid not in objlist:
         print_prompt('Obj %i is not in the line list'%(objid),
@@ -1848,7 +1798,6 @@ def measure_z_interactive(linelistfile=" ", path_to_wisp_data = ' ', show_disper
                 use_stored_fits = False
 
 
-
         if use_stored_fits == True:
              inspect_object(user, parnos[0], next_obj, objinfo,
                                 lamlines_found, ston_found, g102zeroarr,
@@ -1904,7 +1853,6 @@ def measure_z_interactive(linelistfile=" ", path_to_wisp_data = ' ', show_disper
                        # path_pickle12 = '/Volumes/Thunderbay/wisps/mzr_refit/Par'  + str(parnos[0]) + '_output_alaina-mzr/fitdata/Par' + str(parnos[0]) + '_BEAM_' + str(next_obj) + '_fitspec.pickle'
 
 
-
                        ### put new fits first
                        # if os.path.exists(path_pickle11):
                        #     inpickles.append(path_pickle11)
@@ -1936,8 +1884,6 @@ def measure_z_interactive(linelistfile=" ", path_to_wisp_data = ' ', show_disper
                            use_stored_fits = False
 
 
-
-
                     if (use_stored_fits ==True):
                        inspect_object(user, parnos[0], next_obj, objinfo,
                                 lamlines_found, ston_found, g102zeroarr,
@@ -1955,9 +1901,6 @@ def measure_z_interactive(linelistfile=" ", path_to_wisp_data = ' ', show_disper
 
     make_tarfile(outdir)
     print_prompt('A tarfile of your outputs has been created: %s.tar.gz'%outdir, prompt_type='interim')
-
-
-
 
 
    # Clean up temp files
@@ -1988,7 +1931,7 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         cat.write('#3 redshift_error \n')
         cat.write('#4 ra_obj \n')
         cat.write('#5 dec_obj \n')
-        cat.write('#6 hmag_obj \n')
+        cat.write('#6 f140w_mag \n')
         cat.write('#7 a_image_obj \n')
         cat.write('#8 b_image_obj \n')
         cat.write('#9 snr_tot_others \n')
@@ -2004,23 +1947,6 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         cat.write('#19 o2_3727_dz \n')
         cat.write('#20 o3_5007_dz \n')
         cat.write('#21 s3_he_dz \n')
-
-        # result_lines = [\
-        # 'la_1216', 'la_wing', 'la_total', \
-        # 'n5_1238', 'n5_1242', 'n5_total', \
-        # 'c4_1548', 'c4_1550', 'c4_total', \
-        # 'h2_1640', \
-        # 'o3_1660', 'o3_1666', 'o3_total', \
-        # 's3_1883', 's3_1892', 's3_total', \
-        # 'c3_1907', 'c3_1909', 'c3_total', \
-        # 'm2_2796', 'm2_2803', 'm2_total', \
-        # 'o2_3727', 'o2_3730', 'o2_total', \
-        # 'hg_4342', 'o3_4363', 'h2_4686', \
-        # 'hb_4863', 'o3_4959', 'o3_5007', \
-        # 'o1_6300', 'o1_6363', 'n2_6550', \
-        # 'ha_6565', 'n2_6585', 'ha_total', \
-        # 's2_6716', 's2_6731', 's2_total', \
-        # 's3_9069', 's3_9532', 'he10830']
 
         result_lines = [\
         'la_1216', 'la_wing', 'la_1216_wing', \
@@ -2051,22 +1977,6 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
             cat.write('#'+str(results_idx+3)+' '+line+'_contam \n')
             results_idx = results_idx + 4
 
-        # #cat.write('#1 ParNo\n')
-        # cat.write('#2 ObjID\n')
-        # cat.write('#3 RA \n')
-        # cat.write('#4 Dec \n')
-        # #cat.write('#5 Jmagnitude [99.0 denotes no detection] \n')
-        # cat.write('#6 F140W_MAG_AUTO [99.0 denotes no detection] \n')
-        # cat.write('#7 A_IMAGE \n')
-        # cat.write('#8 B_IMAGE \n')
-        # cat.write('#9 redshift \n')
-        # cat.write('#10 redshift_error \n')
-        # cat.write('#11 weighted_SNR [flux-weighted SNR of saved lines] \n')
-        # cat.write('#12 o3_5007_dz \n')
-        # cat.write('#13 o2_3727_dz \n')
-        # cat.write('#14 s3_he_dz \n')
-        # cat.write('#15 G141_FWHM_obs [Angstroms] \n')
-        # cat.write('#16 G141_FWHM_obs_error  \n')
         cat.close()
 
     outstr = '{:<6d}'.format(objid) +\
@@ -2245,7 +2155,7 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         '{:>13.2e}'.format(fitresults['ha_6550_6565_6585_flux']) + \
         '{:>13.2e}'.format(fitresults['ha_6550_6565_6585_error']) + \
         '{:>13.2e}'.format(fitresults['ha_6550_6565_6585_ew_obs']) + \
-        '{:>6d}'.format(np.max([contamflags['ha_6565'], contamflags['n2_6585']])) +\
+        '{:>6d}'.format(np.max([contamflags['n2_6550'], contamflags['ha_6565'], contamflags['n2_6585']])) +\
         '{:>13.2e}'.format(fitresults['s2_6716_flux'])  + \
         '{:>13.2e}'.format(fitresults['s2_6716_error']) +  \
         '{:>13.2e}'.format(fitresults['s2_6716_ew_obs']) +\
