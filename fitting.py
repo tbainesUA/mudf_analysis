@@ -471,8 +471,12 @@ def fit_obj(input_list):
     w = np.where((lam_spec < la_1216_obs - fit_region) | (lam_spec > he10830_obs + fit_region))
     mask_spec[w] = 1.0
 
+    # only mask the strong lines so there is sufficient continuum.
+    # testing showed that commenting out mask_emission_lines(o1_6300_obs, o1_6363_obs)
+    # made the code run much more slowly and inexplicably changed the emission
+    # line S/N estimates by very large factors for one test object, so change with care.
     mask_emission_lines(la_1216_obs, la_1216_obs)
-    mask_emission_lines(n5_1238_obs, n5_1242_obs)
+    #mask_emission_lines(n5_1238_obs, n5_1242_obs)
     mask_emission_lines(c4_1548_obs, c4_1550_obs)
     mask_emission_lines(h2_1640_obs, h2_1640_obs)
     mask_emission_lines(o3_1660_obs, o3_1666_obs)
@@ -730,39 +734,34 @@ def fit_obj(input_list):
 
         ########################################################################
 
-        # define emission lines that are 'tied' to their stronger doublet for mpfit.
+        # define emission lines that are fixed relative to their stronger doublet for mpfit.
         # the amplitudes of the parent lines are fixed to be positive so does not need to be specified.
-        # the 'tied' feature works but does not calculate errors so move to using fixed values.
 
-        # parinfo[o3_1666_idx]['value'] = (estimate_emission_line_amplitudes(o3_1660_obs) * 2.46)
-        # parinfo[o3_1666_idx]['tied']  = 'p['+str(o3_1660_idx)+'] * 2.46'
         parinfo[o3_1666_idx]['value'] = (1.0 / 2.46) # blue line / red line
         parinfo[o3_1666_idx]['fixed'] = 1
 
-        # parinfo[o3_4959_idx]['value'] = (estimate_emission_line_amplitudes(o3_5007_obs) / 3.0)
-        # parinfo[o3_4959_idx]['tied']  = 'p['+str(o3_5007_idx)+'] / 3.0'
         parinfo[o3_5007_idx]['value'] = (1.0 / 3.0) # blue line / red line
         parinfo[o3_5007_idx]['fixed'] = 1
 
-        # parinfo[o1_6363_idx]['value'] = (estimate_emission_line_amplitudes(o1_6300_obs) / 3.0)
-        # parinfo[o1_6363_idx]['tied']  = 'p['+str(o1_6300_idx)+'] / 3.0'
         parinfo[o1_6363_idx]['value'] = (3.0 / 1.0) # blue line / red line
         parinfo[o1_6363_idx]['fixed'] = 1
 
         parinfo[n2_6585_idx]['value'] = (1.0 / 3.0) # blue line / red line
         parinfo[n2_6585_idx]['fixed'] = 1
 
-        # if Ha and [N II] are in the grism then lock the flux ratio (do not even think you should change this for grism data).
-        # testing showed that allowing this to vary in the grism often puts all of the flux into [N II] which is unphysical.
-        # if (ha_6565_obs > transition_wave):
-        #     parinfo[n2_6585_idx]['tied']  = 'p['+str(ha_6565_idx)+'] / 10.0'
-        #     parinfo[n2_6550_idx]['tied']  = 'p['+str(ha_6565_idx)+'] / 30.0'
-        # else:
-        #     parinfo[n2_6585_idx]['tied']  = ''
-        #     parinfo[n2_6550_idx]['tied']  = 'p['+str(n2_6585_idx)+'] / 3.0'
-        # to fix [N II] 6585 as 10% of halpha, we fix 6550 to 1/30 of total, so that
-        # 6585 is 3/30 of total, thus [N II] = 4/30 = 0.13 (13%) of the total flux.
-        # see table 2. of Erb 2006, this fraction generally changes with mass.
+        '''
+        If Ha and [N II] are in the grism then lock the flux ratio because the
+        lines are not resolved. As noted in earlier code versions, "do not even
+        think you should change this for grism data". Indeed, testing showed that
+        allowing this to vary often puts all of the flux into [N II], which is
+        unphysical. Following the model of Henry et al. 2021, ApJ, 919, 143, we
+        fix the flux of [N II] 6585 to 10% of Ha. This corresponds to 13% of the
+        total flux including both [N II] lines. This overall contribution is in
+        agreement with Erb et al. 2006, ApJ, 644, 813 (Table 2) for moderate mass
+        galaxies. The range is ~13 - 36%, increasing with host galaxy stellar mass.
+        '''
+
+        # 6550 is 1/30 of total, 6585 is 3/30 of total, thus [N II] = 4/30 = 0.13 of the total flux.
         if (ha_6565_obs > transition_wave):
             parinfo[n2_6550_idx]['tied']  = 'p['+str(ha_6565_idx)+'] / 30.0'
 
@@ -911,26 +910,22 @@ def fit_obj(input_list):
         ############################################################################
 
         # calculate the emission line fluxes and return them to measure_z_interactive().
-        #la_1216_flux, la_1216_err, la_1216_ew_obs = calculate_emission_line_flux(la_1216_obs, la_1216_idx, la_1216_vac) # handled separately due to wing.
         h2_1640_flux, h2_1640_err, h2_1640_ew_obs = calculate_emission_line_flux(h2_1640_obs, h2_1640_idx, h2_1640_vac)
         hg_4342_flux, hg_4342_err, hg_4342_ew_obs = calculate_emission_line_flux(hg_4342_obs, hg_4342_idx, hg_4342_vac)
         o3_4363_flux, o3_4363_err, o3_4363_ew_obs = calculate_emission_line_flux(o3_4363_obs, o3_4363_idx, o3_4363_vac)
         h2_4686_flux, h2_4686_err, h2_4686_ew_obs = calculate_emission_line_flux(h2_4686_obs, h2_4686_idx, h2_4686_vac)
         hb_4863_flux, hb_4863_err, hb_4863_ew_obs = calculate_emission_line_flux(hb_4863_obs, hb_4863_idx, hb_4863_vac)
-        #o3_4959_flux, o3_4959_err, o3_4959_ew_obs = calculate_emission_line_flux(o3_4959_obs, o3_4959_idx, o3_4959_vac) # tied to 1/3 of 5007.
-        #o3_5007_flux, o3_5007_err, o3_5007_ew_obs = calculate_emission_line_flux(o3_5007_obs, o3_5007_idx, o3_5007_vac)
-        #o1_6300_flux, o1_6300_err, o1_6300_ew_obs = calculate_emission_line_flux(o1_6300_obs, o1_6300_idx, o1_6300_vac)
-        #o1_6363_flux, o1_6363_err, o1_6363_ew_obs = calculate_emission_line_flux(o1_6363_obs, o1_6363_idx, o1_6363_vac)
         n2_6550_flux, n2_6550_err, n2_6550_ew_obs = calculate_emission_line_flux(n2_6550_obs, n2_6550_idx, n2_6550_vac) # tied to 1/3 of 6585.
         ha_6565_flux, ha_6565_err, ha_6565_ew_obs = calculate_emission_line_flux(ha_6565_obs, ha_6565_idx, ha_6565_vac)
         n2_6585_flux, n2_6585_err, n2_6585_ew_obs = calculate_emission_line_flux(n2_6585_obs, n2_6585_idx, n2_6585_vac)
-        #s3_9069_flux, s3_9069_err, s3_9069_ew_obs = calculate_emission_line_flux(s3_9069_obs, s3_9069_idx, s3_9069_vac)
-        #s3_9532_flux, s3_9532_err, s3_9532_ew_obs = calculate_emission_line_flux(s3_9532_obs, s3_9532_idx, s3_9532_vac)
         he10830_flux, he10830_err, he10830_ew_obs = calculate_emission_line_flux(he10830_obs, he10830_idx, he10830_vac)
 
-        # calculate the flux, error, and equivalent width values for halpha and
-        # [N II] separately, which is required because [N II] is 'tied' to halpha
-        # in the grism, and mpfit does not return uncertainties for 'tied' params.
+        '''
+        Calculate the flux, error, and equivalent width values for halpha and
+        [N II] separately, which is required because [N II] is 'tied' to halpha
+        in the grism, and mpfit does not return uncertainties for 'tied' params.
+        '''
+
         if (ha_6565_flux > 0.0): # if HA is detected.
             if (n2_6585_flux > 0.0): # if [N II] is also detected.
                 if (ha_6565_obs <= transition_wave): # if in muse.
@@ -1001,9 +996,11 @@ def fit_obj(input_list):
 
         ############################################################################
 
-        # calculate the emission line fluxes and return them to measure_z_interactive().
-
-        # lyman alpha has a half-gaussian wing and the function returns gaussian params so divide the wing amplitude by two to divide the flux in half.
+        '''
+        Calculate the emission line fluxes and return them to measure_z_interactive().
+        lyman alpha has a half-gaussian wing and the function returns gaussian params
+        so divide the wing amplitude by two to divide the flux in half.
+        '''
         out.params[la_wing_amp_idx] = (out.params[la_wing_amp_idx] / 2.0)
 
         la_1216_wing_flux, la_1216_wing_err, la_1216_wing_ew_obs, la_1216_flux, la_1216_err, la_1216_ew_obs, la_wing_flux, la_wing_err, la_wing_ew_obs = \
