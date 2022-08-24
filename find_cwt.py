@@ -16,7 +16,7 @@ def find_cwt(lam, flux, err, zeros, fwhm_est_pix, beam_name, config_pars, plotfl
     noise_cut_cwt = config_pars['noise_cut_cwt'] # noise cut for cwt to estimate noise
     min_length_cwt = config_pars['min_length_ridge'] # minimum length of a cwt ridge to be considered real
     edge_reject = config_pars['edge_reject'] # reject cwt detections within 5 pixcels of edge
-    sn_thresh_cont_check = config_pars['n_sigma_above_cont'] # step2 requires cwt line candidates to have npix_thresh abvove sn_threh_cont_check
+    sn_thresh_cont_check = config_pars['n_sigma_above_cont'] # step2 requires cwt line candidates to have npix_thresh abvove sn_thresh_cont_check
     npix_thresh = config_pars['npix_thresh']
     min_line_contrast = config_pars['min_line_contrast'] # minimum allowed for rejecting low EW lines.
 
@@ -35,7 +35,7 @@ def find_cwt(lam, flux, err, zeros, fwhm_est_pix, beam_name, config_pars, plotfl
         axarr[1].plot(lam, cont_filter+err*sn_thresh_cont_check, color= 'orange')
         axarr[1].plot(lam, cont_filter)
 
-    # calculate and show contiuous wavelet transform array
+    # calculate and show continuous wavelet transform array
     cwarray = si.cwt(flux, si.ricker, widths)
 
     if plotflag ==True:
@@ -51,7 +51,7 @@ def find_cwt(lam, flux, err, zeros, fwhm_est_pix, beam_name, config_pars, plotfl
     peaks = np.array(peaks)
 
     # reject peaks near the edge
-    w = np.where( (peaks > edge_reject) & (peaks < np.size(lam) - edge_reject))
+    w = np.where((peaks > edge_reject) & (peaks < np.size(lam) - edge_reject))
     peaks = peaks[w[0]]
 
     # reject lines with presumably low EWs
@@ -61,8 +61,8 @@ def find_cwt(lam, flux, err, zeros, fwhm_est_pix, beam_name, config_pars, plotfl
         # added this step in case peaks fail the above conditional
         peaks = []
     else:
-        w=np.where(peak_contrast > min_line_contrast)
-        peaks  = peaks[w[0]]
+        w = np.where(peak_contrast > min_line_contrast)
+        peaks = peaks[w[0]]
 
     if np.size(peaks) > 0:
 
@@ -70,15 +70,16 @@ def find_cwt(lam, flux, err, zeros, fwhm_est_pix, beam_name, config_pars, plotfl
         snr_thresh = sn_thresh_cont_check
         npix_peak = []
         line_snr_guess = []
+
         for i in peaks:
             # first of all, is peak above threshold
-            if flux[i] > cont_filter[i] + err[i]  * snr_thresh :
+            if flux[i] > cont_filter[i] + err[i] * snr_thresh:
                 pixel_count = 1
                 cond = 0
                 j = i + 1
 
-                while ((cond == 0.) & (j < np.size(flux) -1)) :
-                    if flux[j] > cont_filter[j] + err[j]  * snr_thresh:
+                while ((cond == 0.) & (j < np.size(flux) - 1)):
+                    if flux[j] > cont_filter[j] + err[j] * snr_thresh:
                         pixel_count = pixel_count + 1
                         j = j + 1
                     else:
@@ -88,14 +89,14 @@ def find_cwt(lam, flux, err, zeros, fwhm_est_pix, beam_name, config_pars, plotfl
                 j = i-1
 
                 while ((cond == 0) & (j > 0)):
-                    if flux[j] > cont_filter[j] + err[j]  * snr_thresh:
+                    if flux[j] > cont_filter[j] + err[j] * snr_thresh:
                          pixel_count = pixel_count + 1
                          #cond = 0
                          j = j-1
                     else:
                         cond = 1.
             else:
-                pixel_count =0
+                pixel_count = 0
 
             npix_peak.append(pixel_count)
 
@@ -109,7 +110,7 @@ def find_cwt(lam, flux, err, zeros, fwhm_est_pix, beam_name, config_pars, plotfl
 
             w = np.where((lam > lam[i] - 0.5 * fwhm_est) & (lam < lam[i] + 0.5 * fwhm_est))
             line_signal_guess = np.sum((flux[w] - cont_filter[w]) * disp_est)
-            line_noise_guess = np.sqrt(np.sum((err[w]* disp_est)**2 ))
+            line_noise_guess = np.sqrt(np.sum((err[w] * disp_est)**2))
             line_snr_guess.append(line_signal_guess/line_noise_guess)
 
         npix_peak = np.array(npix_peak)
@@ -132,7 +133,7 @@ def find_cwt(lam, flux, err, zeros, fwhm_est_pix, beam_name, config_pars, plotfl
     return [lam[real_peaks], flux[real_peaks], npix_real, snr_real, cwarray, cont_filter, lam[peaks], flux[peaks]]
 
 def loop_field_cwt():
-    # no inputs and run from the  inside the data directory
+    # no inputs and run from inside the data directory
     if os.path.exists('linelist') == False:
         os.mkdir('linelist')
 
@@ -168,7 +169,8 @@ def loop_field_cwt():
     beam_se = cat['NUMBER']
 
     outfile = open('linelist/temp', 'w')
-    config_pars['transition_wave'] = 11700.
+    #config_pars['transition_wave'] = 11700.
+    config_pars['transition_wave'] = 9353. # MDR 2022/08/16
 
     print('')
     print('Searching for grism files...')
@@ -207,7 +209,7 @@ def loop_field_cwt():
         for i in np.arange(len(lam_cwt)):
             #print beam, 'G102', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i]
             print beam, 'MUSE', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i]
-            outfile.write(parno + '  G102  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) +  ' '  +  str(npix_cwt[i])   +  '   ' + str(snr_cwt[i]) + '\n')
+            outfile.write(parno + '  G102  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
 
         if config_pars['n_sigma_for_2pix_lines'] != False:
             config_pars['npix_thresh'] = 2
@@ -220,13 +222,15 @@ def loop_field_cwt():
             for i in np.arange(len(lam_cwt)):
                 #print beam, 'G102', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i]
                 print beam, 'MUSE', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i]
-                outfile.write(parno + ' G102   '  + str(int(beam)) + ' ' + str(lam_cwt[i]) +  ' '  +  str(npix_cwt[i])  +  '   ' + str(snr_cwt[i]) + '\n')
+                outfile.write(parno + '  G102  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
 
         # go back to the beginning with the old config pars
         config_pars = read_config('default.config')
-        config_pars['transition_wave'] = 11700.
+        #config_pars['transition_wave'] = 11700.
+        config_pars['transition_wave'] = 9353. # MDR 2022/08/16
 
-    config_pars['transition_wave'] = 11100.
+    #config_pars['transition_wave'] = 11100.
+    config_pars['transition_wave'] = 9353. # MDR 2022/08/16
 
     for filename in g141files:
 
@@ -255,7 +259,7 @@ def loop_field_cwt():
 
         for i in np.arange(len(lam_cwt)):
             print beam, 'G141', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i]
-            outfile.write(parno +  '  G141  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) +  ' '  +  str(npix_cwt[i]) +   '   ' + str(snr_cwt[i]) +'\n')
+            outfile.write(parno + '  G141  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
 
         if config_pars['n_sigma_for_2pix_lines'] != False:
             config_pars['npix_thresh'] = 2
@@ -268,10 +272,12 @@ def loop_field_cwt():
 
             for i in np.arange(len(lam_cwt)):
                 print beam, 'G141', lam_cwt[i], npix_cwt[i], snr_cwt[i]
-                outfile.write(parno + '  G141  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) +  ' '  +  str(npix_cwt[i])  + '   ' + str(snr_cwt[i]) + '\n')
+                outfile.write(parno + '  G141  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
+
         # go back to the beginning with the old config pars
         config_pars = read_config('default.config')
-        config_pars['transition_wave'] = 11200.
+        #config_pars['transition_wave'] = 11200.
+        config_pars['transition_wave'] = 9353. # MDR 2022/08/16
 
     outfile.close()
     tab = asciitable.read('linelist/temp', format = 'no_header')
@@ -306,7 +312,7 @@ def loop_field_cwt():
         snr_final_g102 = snr_uniq[s]
 
         for lam, npx, sn in zip(waves_final_g102, npix_final_g102, snr_final_g102):
-            outfile.write(str(par) +  ' G102  ' + str(b) +  '  '   + str(lam) +  '   ' +str(npx)  + '  ' + str(sn)  +  '\n')
+            outfile.write(str(par) + '  G102  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
 
         # do the g141 for b
         w = (beam == b) & (grism == 'G141')
@@ -322,7 +328,7 @@ def loop_field_cwt():
         snr_final_g141 = snr_uniq[s]
 
         for lam, npx, sn in zip(waves_final_g141, npix_final_g141, snr_final_g141):
-            outfile.write(str(par) + '  G141  ' + str(b) +  ' ' + str(lam) + '  ' + str(npx)  +'  ' +  str(sn) +  '  \n')
+            outfile.write(str(par) + '  G141  ' + str(b) + '  ' + str(lam) + '  ' + str(npx) + '  ' + str(sn) + '\n')
 
     outfile.close()
 
@@ -344,7 +350,8 @@ def test_obj_cwt(parno, beamno, configfile):
     flux_corr = trimmed_spec_blue[1] - trimmed_spec_blue[3]
     err = trimmed_spec_blue[2]
     zeros = trimmed_spec_blue[4]
-    config_pars['transition_wave']  = 11700.
+    #config_pars['transition_wave']  = 11700.
+    config_pars['transition_wave'] = 9353. # MDR 2022/08/16
 
     if len(lam) < config_pars['min_spec_length']:
         print 'Short spec. skip it!'
@@ -357,7 +364,8 @@ def test_obj_cwt(parno, beamno, configfile):
         print g102_cwt[0], g102_cwt[1], g102_cwt[2], fwhm_est_pix
 
     # do the red side
-    config_pars['transition_wave'] = 11200.
+    #config_pars['transition_wave'] = 11200.
+    config_pars['transition_wave'] = 9353. # MDR 2022/08/16
     spdata_red = asciitable.read(redfile, names = ['lambda', 'flux', 'ferror', 'contam', 'zero'])
     trimmed_spec_red = trim_spec(None, spdata_red, config_pars)
     lam = trimmed_spec_red[0]
@@ -372,5 +380,5 @@ def test_obj_cwt(parno, beamno, configfile):
         w = w[0] # because of tuples
         a_image = a_image_red[w][0]
         fwhm_est_pix = a_image * 2
-        g141_cwt= find_cwt(lam, flux_corr, err, zeros, fwhm_est_pix, str(beamno), config_pars, plotflag=True)
+        g141_cwt = find_cwt(lam, flux_corr, err, zeros, fwhm_est_pix, str(beamno), config_pars, plotflag=True)
         print g141_cwt[0], g141_cwt[1], g141_cwt[2], fwhm_est_pix
