@@ -374,7 +374,7 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     # the maximum number of zoom-in plots is 7 for visibility.
     if (num_gridspec_plots > 7): num_gridspec_plots = 7
 
-    if (verbose == True): print 'There are '+str(num_gridspec_plots)+' lines with S/N > 3.\n'
+    #if (verbose == True): print 'There are '+str(num_gridspec_plots)+' lines with S/N > 3 in MUSE.\n'
 
     # generate the plot grid.
     plt.ion()
@@ -709,7 +709,7 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
     fig.savefig(plotfilename)
     plt.draw()
 
-    if (verbose == True): print('Exiting plot_object...\n') # MDR 2022/05/17
+    #if (verbose == True): print('Exiting plot_object...\n') # MDR 2022/05/17
 
 
 def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zeros, g141zeros, linelistoutfile, commentsfile, remaining, allobjects, show_dispersed=True, stored_fits = False, path_to_wisp_data = ' '):
@@ -836,7 +836,8 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
 
     # MDR 2022/06/10 - Changed the first guess line to [O II] for MUSE.
     #zguess = lamline / ha_6565_vac - 1
-    zguess = lamline / ((o2_3727_vac + o2_3730_vac) / 2.0) - 1.0
+    #zguess = lamline / ((o2_3727_vac + o2_3730_vac) / 2.0) - 1.0
+    zguess = (lamline / o2_3730_vac) - 1.0
     # fwhm is defined for the red side, regardless of where line is
     fwhm_guess = 2.35 * a_image * config_pars['dispersion_red']
 
@@ -985,13 +986,6 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         # checking user's input. keeping this format the same as before
         # any time done is set to 1, the object is considered fit
 
-        ### MDR 2022/06/30
-        if option.strip().lower() == 'full':
-            fast_fit = False
-        if option.strip().lower() == 'fast':
-            fast_fit = True
-        ### MDR 2022/06/30
-
         # reject object
         if option.strip().lower() == 'r':
            zset = 0
@@ -1014,6 +1008,13 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                 flagcont = 1
             elif fast_fit == True:
                 print '\nWARNING: Still using fast fit mode, type full for refined fit.'
+
+        ### MDR 2022/06/30
+        elif option.strip().lower() == 'full':
+            fast_fit = False
+        elif option.strip().lower() == 'fast':
+            fast_fit = True
+        ### MDR 2022/06/30
 
         # accept object and note contamination
         elif option.strip().lower() == 'ac':
@@ -1087,7 +1088,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                 config_pars['mask_region2'] = maskwave
 
         elif option.strip().lower() == 'm3':
-            print_prompt("Enter wavelength window to mask out:  blue, red (Angstroms:")
+            print_prompt("Enter wavelength window to mask out:  blue, red (Angstroms):")
             maskstr = raw_input("> ")
             try:
                 maskwave = [float(maskstr.split(",")[0]),
@@ -1157,7 +1158,8 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             index_of_strongest_line = 0
             lamline = lamlines_found[index_of_strongest_line]
             #zguess = lamline / ha_6565_vac - 1
-            zguess = lamline / ((o2_3727_vac + o2_3730_vac) / 2.0) - 1.0
+            #zguess = lamline / ((o2_3727_vac + o2_3730_vac) / 2.0) - 1.0
+            zguess = (lamline / o2_3730_vac) - 1.0
             # reset contamflags
             for k, v in contamflags.iteritems():
                     contamflags[k] = contamflags[k] & 0
@@ -1188,7 +1190,8 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             if index_of_strongest_line < (nlines_found_cwt):
                 lamline = lamlines_found[index_of_strongest_line]
                 #zguess = lamline / 6564.610 - 1.0
-                zguess = lamline / ((o2_3727_vac + o2_3730_vac) / 2.0) - 1.0
+                #zguess = lamline / ((o2_3727_vac + o2_3730_vac) / 2.0) - 1.0
+                zguess = (lamline / o2_3730_vac) - 1.0
             else:
                 print_prompt('There are no other automatically identified peaks. Select another option.')
                 # stay at current line
@@ -1201,7 +1204,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         elif option.strip().lower() == 'c4':
             zguess = (lamline / c4_1548_vac) - 1.0
         elif option.strip().lower() == 'o2':
-            zguess = (lamline / o2_3727_vac) - 1.0
+            zguess = (lamline / o2_3730_vac) - 1.0
         elif option.strip().lower() == 'hb':
             zguess = (lamline / hb_4863_vac) - 1.0
         elif option.strip().lower() == 'o31':
@@ -1989,10 +1992,10 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
             results_idx = results_idx + 4
 
         cat.close()
-
+    # does not leave space before RA?
     outstr = '{:<6d}'.format(objid) +\
         '{:>8.4f}'.format(fitresults['redshift']) + \
-        '{:>10.4f}'.format(fitresults['redshift_error']) +\
+        '{:>8.4f}'.format(fitresults['redshift_error']) +\
         '{:<12.6f}'.format(ra_obj[0]) + \
         '{:<12.6f}'.format(dec_obj[0]) + \
         '{:<8.2f}'.format(hmag_obj[0]) + \
