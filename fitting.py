@@ -813,7 +813,7 @@ def fit_obj(input_list):
         else:
             print 'Running full line fit...'
 
-        out = mpfit(model_resid, pguess, functkw = fa, parinfo = parinfo, quiet = True)
+        out = mpfit(model_resid, pguess, functkw = fa, parinfo = parinfo, quiet = True, maxiter = 100)
 
         end_time = default_timer() # time the fit for performance analyses.
 
