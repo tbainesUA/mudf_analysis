@@ -969,7 +969,10 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             snr_line = (fitresults[line+'_flux'] / fitresults[line+'_error'])
             if (snr_line >= 3.0):
                 snr_tot_weight = (fitresults[line+'_flux'] / total_flux)
-                snr_tot_others.append(snr_line * snr_tot_weight)
+                if (np.isfinite(snr_line * snr_tot_weight)):
+                    snr_tot_others.append(snr_line * snr_tot_weight)
+                else:
+                    snr_tot_others.append(0.0)
         # MDR 2022/06/10
         snr_tot_others = np.sum(snr_tot_others)
 
@@ -1994,26 +1997,26 @@ def writeToCatalog(catalogname, parnos, objid, ra_obj, dec_obj, a_image_obj, b_i
         cat.close()
     # does not leave space before RA?
     outstr = '{:<6d}'.format(objid) +\
-        '{:>8.4f}'.format(fitresults['redshift']) + \
-        '{:>8.4f}'.format(fitresults['redshift_error']) +\
-        '{:<12.6f}'.format(ra_obj[0]) + \
-        '{:<12.6f}'.format(dec_obj[0]) + \
-        '{:<8.2f}'.format(hmag_obj[0]) + \
-        '{:<8.3f}'.format(a_image_obj[0]) + \
-        '{:<8.3f}'.format(b_image_obj[0]) + \
-        '{:>10.4f}'.format(snr_tot_others) +\
-        '{:>8.4f}'.format(fitresults['chisq']) + \
+        '{:>8.5f}'.format(fitresults['redshift']) + \
+        '{:>8.5f}'.format(fitresults['redshift_error']) +\
+        '{:>12.6f}'.format(ra_obj[0]) + \
+        '{:>12.6f}'.format(dec_obj[0]) + \
+        '{:>8.2f}'.format(hmag_obj[0]) + \
+        '{:>8.3f}'.format(a_image_obj[0]) + \
+        '{:>8.3f}'.format(b_image_obj[0]) + \
+        '{:>10.2f}'.format(snr_tot_others) +\
+        '{:>10.2f}'.format(fitresults['chisq']) + \
         '{:>10.2f}'.format(fitresults['fwhm_muse']) + \
         '{:>10.2f}'.format(fitresults['fwhm_muse_error'])  +  \
         '{:>10.2f}'.format(fitresults['fwhm_g141']) + \
         '{:>10.2f}'.format(fitresults['fwhm_g141_error'])  +  \
-        '{:>10.4f}'.format(fitresults['la_1216_dz'])   + \
-        '{:>10.4f}'.format(fitresults['c4_1548_dz'])   + \
-        '{:>10.4f}'.format(fitresults['uv_line_dz'])   + \
-        '{:>10.4f}'.format(fitresults['m2_2796_dz'])   + \
-        '{:>10.4f}'.format(fitresults['o2_3727_dz'])   + \
-        '{:>10.4f}'.format(fitresults['o3_5007_dz'])  + \
-        '{:>10.4f}'.format(fitresults['s3_he_dz']) +\
+        '{:>10.5f}'.format(fitresults['la_1216_dz'])   + \
+        '{:>10.5f}'.format(fitresults['c4_1548_dz'])   + \
+        '{:>10.5f}'.format(fitresults['uv_line_dz'])   + \
+        '{:>10.5f}'.format(fitresults['m2_2796_dz'])   + \
+        '{:>10.5f}'.format(fitresults['o2_3727_dz'])   + \
+        '{:>10.5f}'.format(fitresults['o3_5007_dz'])  + \
+        '{:>10.5f}'.format(fitresults['s3_he_dz']) +\
         '{:>13.2e}'.format(fitresults['la_1216_flux']) + \
         '{:>13.2e}'.format(fitresults['la_1216_error']) + \
         '{:>13.2e}'.format(fitresults['la_1216_ew_obs']) +\
