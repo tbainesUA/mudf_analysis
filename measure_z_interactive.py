@@ -46,7 +46,7 @@ import matplotlib.patheffects as PathEffects
 # Explicitly import readline to make the text entry process easier on OSX
 import readline
 # SQLLite database support for data persistence
-from WISPLFDatabaseManager import WISPLFDatabaseManager as WDBM
+from .WISPLFDatabaseManager import WISPLFDatabaseManager as WDBM
 
 from wisp_analysis import *
 
@@ -55,7 +55,7 @@ verbose = True # MDR 2022/05/17
 if (verbose == True):
     print('\nCompiling measure_z_interactive...\n') # MDR 2022/05/17
     print('The current working director is...\n') # MDR 2022/05/17
-    print(os.getcwd()) # MDR 2022/05/17
+    print((os.getcwd())) # MDR 2022/05/17
 
 #######################################################################
 
@@ -210,7 +210,7 @@ def getfirstorders(firstorderpath):
         folen.append(float(linesplit[3][0:-1]))
         # python is weird.
         fowid.append(float(linesplit[-1].split('{')[-1].split('}')[0]))
-    print foid
+    print(foid)
     t = Table([fox, foy, folen, fowid], names=(
         'x', 'y', 'len', 'width', 'objid'))
     return t
@@ -296,13 +296,13 @@ def comment_out_obj(par, obj, catalogname):
     if os.path.exists(catalogname):
         for line in fileinput.input(catalogname, inplace=True):
             if objstr in line:
-                print "#%s" % line,
+                print("#%s" % line, end=' ')
             else:
-                print '%s' % line,
+                print('%s' % line, end=' ')
 
 
 def print_prompt(prompt, prompt_type='obj'):
-    print(setcolors[prompt_type] + prompt + setcolors['endc'])
+    print((setcolors[prompt_type] + prompt + setcolors['endc']))
 
 
 def write_object_summary(par, obj, fitresults, snr_meas_array, contamflags, summary_type='accept'):
@@ -681,7 +681,7 @@ def plot_object(zguess, zfit, spdata, config_pars, snr_meas_array, snr_tot_other
                 add_line_labels(ax9, ax9trans, xmin, xmax)
                 add_extra_lines(ax9, ax9trans, xmin, xmax)
             else:
-                print 'Failed to set XY limits.'
+                print('Failed to set XY limits.')
 
             # try:
             #     print 'eval(ax+str(x+3)) = ', eval('ax'+str(x+3))
@@ -784,7 +784,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
 
     ### # MDR 2022/05/17
     # GET REFIT OPTION WORKING.
-    print('\nSearching for previous fits to object {}...\n'.format(str(obj)))
+    print(('\nSearching for previous fits to object {}...\n'.format(str(obj))))
     #print('file = ', outdir + '/done_%s'%user)
 
     if os.path.exists(outdir + '/done_%s'%user): # needed for the first run before file exists
@@ -815,8 +815,8 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         #nonFitResults, fitResults = catalogueEntryData
         #(par_db, obj_db, ra_db, dec_db, jmag_db, hmag_db, a_image_db, b_image_db, contamflag_db, entrytime_db) = nonFitResults
 #        print('Found previous fit results for Pointing {}, Object {}.\nEnter "y" to accept the earlier fit.'.format(par_db, obj_db))
-        print('You have already fit Obj {}. Refit? [y/N]').format(obj)
-        rejectPrevFit = raw_input('> ').strip().lower() == 'y'
+        print(('You have already fit Obj {}. Refit? [y/N]').format(obj))
+        rejectPrevFit = input('> ').strip().lower() == 'y'
         if rejectPrevFit:
             comment_out_obj(par, obj, linelistoutfile)
 
@@ -850,9 +850,9 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         fitresults_old = alldata[8]
         zguess = fitresults_old['redshift']
         fwhm_guess = fitresults_old['fwhm_g141']
-        print 'using stored fit from: '  + users[0]
-        print 'available stored fits: '
-        print users
+        print('using stored fit from: '  + users[0])
+        print('available stored fits: ')
+        print(users)
         ### also need to figure out what else to add?
             ### config pars for nodes can also be entered here.
 
@@ -984,7 +984,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
 #        print "    Guess Redshift: z = %f" % (zguess)
         print_prompt("    Fit Redshift:   z = %f\n" % (zfit))
         # input
-        option = raw_input("> ")
+        option = input("> ")
 
         # checking user's input. keeping this format the same as before
         # any time done is set to 1, the object is considered fit
@@ -1010,7 +1010,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                 zset = 1
                 flagcont = 1
             elif fast_fit == True:
-                print '\nWARNING: Still using fast fit mode, type full for refined fit.'
+                print('\nWARNING: Still using fast fit mode, type full for refined fit.')
 
         ### MDR 2022/06/30
         elif option.strip().lower() == 'full':
@@ -1025,14 +1025,14 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             zset = 1
             flagcont = 2
             # add to contamination flags
-            for k,v in contamflags.iteritems():
+            for k,v in contamflags.items():
                 contamflags[k] = contamflags[k] | 1
 
         # change redshift guess
         elif option.strip().lower() == 'z':
             print_prompt("The current redshift guess is: %f\nEnter Redshift Guess:" % zguess)
             try:
-                zguess = float(raw_input("> "))
+                zguess = float(input("> "))
             except ValueError:
                 print_prompt('Invalid Entry.')
 
@@ -1042,7 +1042,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             # save previous line guess (if not Ha)
             old_rest_wave = lamline / (1. + zguess)
             try:
-                newwave = float(raw_input("> "))
+                newwave = float(input("> "))
             except ValueError:
                 print_prompt('Invalid Entry.')
             else:
@@ -1054,7 +1054,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             print_prompt("Enter a Guess for FWHM in pixels")
             print_prompt("The current fwhm_fit is:  " + str(fitresults['fwhm_g141'] / config_pars['dispersion_red']) + " and 2*A_image is: " + str(2 * a_image[0]))
             try:
-                fwhm_guess = config_pars['dispersion_red'] * float(raw_input("> "))
+                fwhm_guess = config_pars['dispersion_red'] * float(input("> "))
             except ValueError:
                 print_prompt('Invalid Entry.')
 
@@ -1063,14 +1063,14 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             print_prompt("Enter a new delta_z limit")
             print_prompt("The current delta_z is:  " + str(config_pars['delta_z']))
             try:
-                config_pars['delta_z'] = float(raw_input("> "))
+                config_pars['delta_z'] = float(input("> "))
             except ValueError:
                 print_prompt('Invalid Entry.')
 
         # mask out 1, 2, or 3 regions of the spectrum
         elif option.strip().lower() == 'm1':
             print_prompt("Enter wavelength window to mask out:  blue, red:")
-            maskstr = raw_input("> ")
+            maskstr = input("> ")
             try:
                 maskwave = [float(maskstr.split(",")[0]),
                             float(maskstr.split(",")[1])]
@@ -1081,7 +1081,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
 
         elif option.strip().lower() == 'm2':
             print_prompt("Enter wavelength window to mask out:  blue, red:")
-            maskstr = raw_input("> ")
+            maskstr = input("> ")
             try:
                 maskwave = [float(maskstr.split(",")[0]),
                             float(maskstr.split(",")[1])]
@@ -1092,7 +1092,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
 
         elif option.strip().lower() == 'm3':
             print_prompt("Enter wavelength window to mask out:  blue, red (Angstroms):")
-            maskstr = raw_input("> ")
+            maskstr = input("> ")
             try:
                 maskwave = [float(maskstr.split(",")[0]),
                             float(maskstr.split(",")[1])]
@@ -1106,7 +1106,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         elif option.strip().lower() == 't':
             print_prompt("The current transition wavelength is: " + str(config_pars['transition_wave']) + "\nEnter the wavelength for the G102 to G141 transition:")
             try:
-                config_pars['transition_wave'] = float(raw_input("> "))
+                config_pars['transition_wave'] = float(input("> "))
             except ValueError:
                 print_prompt('Invalid entry. Enter wavelength of grism transition.')
 
@@ -1116,7 +1116,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             strnw = ','.join(str(nw) for nw in config_pars['node_wave'])
             print_prompt("Enter Wavelengths for Continuum Spline: w1, w2, w3, w4, ....")
             print_prompt("current node wavelengths are: %s" % strnw)
-            nodestr = raw_input("> ")
+            nodestr = input("> ")
             nodesplit = nodestr.split(',')
             node_arr = []
             try:
@@ -1135,7 +1135,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
 
             if stored_fits !=  False:
                 print_prompt("Enter name of user for toggling between stored fits")
-                user_input = raw_input("> ")
+                user_input = input("> ")
                 try:
                     w = users.index(user_input)
                 except ValueError:
@@ -1149,7 +1149,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
                 zguess = fitresults_old['redshift']
                 fwhm_guess = fitresults_old['fwhm_g141']
             else:
-                print 'there are no stored fits!'
+                print('there are no stored fits!')
 
 
         # reset all options
@@ -1164,7 +1164,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
             #zguess = lamline / ((o2_3727_vac + o2_3730_vac) / 2.0) - 1.0
             zguess = (lamline / o2_3730_vac) - 1.0
             # reset contamflags
-            for k, v in contamflags.iteritems():
+            for k, v in contamflags.items():
                     contamflags[k] = contamflags[k] & 0
             ### if use stored = true, this should set us back to using the pickle file values
 
@@ -1172,7 +1172,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         elif option.strip().lower() == 'bluecut':
             print_prompt("The current blue cutoff is: " + str(config_pars['lambda_min']) + "\nChange the blue cutoff of G102:")
             try:
-                config_pars['lambda_min'] = float(raw_input("> "))
+                config_pars['lambda_min'] = float(input("> "))
             except ValueError:
                 print_prompt('Invalid entry. Enter wavelength of blue cutoff.')
 
@@ -1181,7 +1181,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         elif option.strip().lower() == 'redcut':
             print_prompt("The current red cutoff is: " + str(config_pars['lambda_max']) + "\nChange the red cutoff of G141:")
             try:
-                config_pars['lambda_max'] = float(raw_input("> "))
+                config_pars['lambda_max'] = float(input("> "))
             except ValueError:
                 print_prompt('Invalid entry. Enter wavelength of red cutoff.')
 
@@ -1226,11 +1226,11 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         # note contamination
         elif option.strip().lower() == 'contam':
             print_prompt("Specify contamination.\nEnter a comma-separated list of identifiers choosing from:\n"+contam_flags_string)
-            cf = raw_input("> ")
+            cf = input("> ")
             cflags = [thing.strip().lower() for thing in cf.split(',')]
             # continuum contamination sets bit 1 for all lines and the continuum itself
             if 'c' in cflags:
-                for k, v in contamflags.iteritems():
+                for k, v in contamflags.items():
                     contamflags[k] = contamflags[k] | 2
             cflaglines = [thing for thing in cflags if thing != 'c']
             # specific line contamination sets bit 2 for all lines
@@ -1246,9 +1246,9 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         elif option.strip().lower() == 'c':
             print_prompt("Enter your comment here:")
             if len(comment) > 0:
-                comment = raw_input("> ") + ', ' + comment
+                comment = input("> ") + ', ' + comment
             else :
-                comment =  raw_input("> ")
+                comment =  input("> ")
 
             # sqlite3 database support - automatically creates and initializes DB if required
            # databaseManager.saveAnnotation((par, obj, comment.decode('utf-8')))
@@ -1257,7 +1257,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         elif option.strip().lower() == 'flag':
             print_prompt('Enter a comma-separated list of flag, value pairs e.g. CONTAM, 1, CONTIN, 2:')
             print_prompt('Valid flags are {}'.format(WISPLFDatabaseManager.WISPLFDatabaseManager.validMutableFlags))
-            flagList = raw_input("> ")
+            flagList = input("> ")
             # sqlite3 database support - automatically creates and initializes DB if required
             #databaseManager.setFlagsFromString(par, obj, flagList.decode('utf-8'))
 
@@ -1288,7 +1288,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         # change g102 2d stamp scaling to zscale
         elif option.strip().lower() == 'zs102':
             print_prompt("Enter comma-separated range for G102 zscale: z1,z2")
-            zscale = raw_input("> ")
+            zscale = input("> ")
             zs = zscale.split(',')
             try:
                 z1 = float(zs[0])
@@ -1303,7 +1303,7 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         # change g141 2d stamp scaling to zscale
         elif option.strip().lower() == 'zs141':
             print_prompt("Enter comma-separated range for G141 zscale: z1,z2")
-            zscale = raw_input("> ")
+            zscale = input("> ")
             zs = zscale.split(',')
             try:
                 z1 = float(zs[0])
@@ -1341,11 +1341,11 @@ def inspect_object(user, par, obj, objinfo, lamlines_found, ston_found, g102zero
         # print remaining objects that have not yet been inspected
         elif option.strip().lower() == 'left':
             print_prompt('Remaining objects:')
-            print remaining
+            print(remaining)
         # print all objects in line list
         elif option.strip().lower() == 'list':
             print_prompt('All objects:')
-            print allobjects
+            print(allobjects)
 
         # quit this object
         elif option.strip().lower() == 'q':
@@ -1423,9 +1423,9 @@ def check_input_objid(objlist, objid, nextup):
         print_prompt('Full line list: \n%s'%(fulllist), prompt_type='interim')
     while objid not in objlist:
         if nextup == 0:
-            o = raw_input("Please try again, or hit enter or 'q' to quit. > ")
+            o = input("Please try again, or hit enter or 'q' to quit. > ")
         else:
-            o = raw_input('Please try again, or hit enter to continue with Obj %s: > '%nextup)
+            o = input('Please try again, or hit enter to continue with Obj %s: > '%nextup)
         if o.strip().lower() == 'q':
             return False
         elif isFloat(o.strip()):
@@ -1442,7 +1442,7 @@ def measure_z_interactive(linelistfile=" ", path_to_wisp_data = ' ', show_disper
     # turn off color printing to terminal if required
     if print_colors is False:
         global setcolors
-        for k,v in setcolors.iteritems():
+        for k,v in setcolors.items():
             setcolors[k] = '\033[0m'
 
     if path_to_wisp_data == ' ':
@@ -1506,14 +1506,14 @@ def measure_z_interactive(linelistfile=" ", path_to_wisp_data = ' ', show_disper
     if (verbose == True):
         print('')
         print('Searching for data files in...\n') # MDR 2022/05/17
-        print(os.getcwd())
+        print((os.getcwd()))
         print('')
 
     tmp = glob(path_to_wisp_data + 'Par' + str(par) + '/Spectra/*.dat')[0] # MDR 2022/05/17
     print_prompt('You are about to inspect emission lines identified in {}'.format(par), prompt_type='interim')
     print_prompt('Please enter your name or desired username', prompt_type='interim')
     while True:
-        user = raw_input('> ')
+        user = input('> ')
         if len(user) == 0:
             print_prompt('Username required', prompt_type='interim')
             continue
@@ -1552,7 +1552,7 @@ def measure_z_interactive(linelistfile=" ", path_to_wisp_data = ' ', show_disper
 
     if os.path.isfile(linelistoutfile):
         print_prompt('\nOutput file: \n  %s \nalready exists\n' % linelistoutfile, prompt_type='interim')
-        ask = raw_input('Append? [Y/n] ')
+        ask = input('Append? [Y/n] ')
         if ask.lower() == 'n':
             os.unlink(linelistoutfile)
             os.unlink(commentsfile)
@@ -1697,10 +1697,10 @@ def measure_z_interactive(linelistfile=" ", path_to_wisp_data = ' ', show_disper
             use_stored_fits  = False
         elif os.path.exists(path_to_stored_fits) :
             use_stored_fits = True
-            print 'looking for stored fit data'
+            print('looking for stored fit data')
         else:
             use_stored_fits = False
-            print 'not using stored fit data'
+            print('not using stored fit data')
 
         ndone = len(np.unique(objid_done))
         progress = float(ndone) / float(len(objid_unique)) * 100.
@@ -1709,20 +1709,20 @@ def measure_z_interactive(linelistfile=" ", path_to_wisp_data = ' ', show_disper
         # do some things as long as there are still objects to inspect
         next_obj = remaining_objects[0]
         print_prompt('Next up: Obj %i' % (next_obj),prompt_type='interim')
-        o = raw_input(
+        o = input(
             "Enter 'xxx' to skip to Obj xxx or hit any key to continue. > ")
 
 
         if o.strip().lower() == 'left':
             #remaining_list = ', '.join(['%i'%i for i in remaining_objects])
             print_prompt('Remaining objects:', prompt_type='interim')
-            print remaining_objects
-            o = raw_input('> ')
+            print(remaining_objects)
+            o = input('> ')
 
         if o.strip().lower() == 'list':
             print_prompt('All objects:', prompt_type='interim')
-            print allobjects
-            o = raw_input('> ')
+            print(allobjects)
+            o = input('> ')
 
         if o.strip().lower() == 'b':
             previous_obj = int(objid_done[-1])
@@ -1835,7 +1835,7 @@ def measure_z_interactive(linelistfile=" ", path_to_wisp_data = ' ', show_disper
     redo = ' '
     while redo != 'q':
         print_prompt("You've finished this field.\nEnter an object ID below to revisit a particular object.\nOtherwise enter 'q' to quit the field.", prompt_type='interim')
-        redo = raw_input("> ").strip().lower()
+        redo = input("> ").strip().lower()
         if redo != 'q':
             try:
                 next_obj = int(re.search('\d+', redo).group())
@@ -2261,7 +2261,7 @@ def UpdateCatalog(linelistoutfile):
         Parno = obj.split('_')[0]   # this is inefficient, but I don't care.
     objid_list = np.sort(np.unique(np.array(objid_list)))
     for obj in objid_list:
-        print obj
+        print(obj)
         inpickle = './fitdata/' + Parno + \
             '_BEAM_' + str(obj) + '_fitspec.pickle'
         fileObject = open(inpickle, 'r')

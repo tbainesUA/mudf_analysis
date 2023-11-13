@@ -58,7 +58,7 @@ def show2dNEW (grism,parno,obid,zeroarr,user,trans,zran1=None,zran2=None, path_t
             zran2 = 5 * rms 
 
     elif os.path.exists(path2d)==0:
-        print "%s stamp not found." % (grism)
+        print("%s stamp not found." % (grism))
         return False
 
     ### USING THE DRIZZLE TRANSFORMATIONS TO GET ZEROTH ORDERS ###
@@ -178,7 +178,7 @@ def showDirectNEW(obid, parno, load_image=False, path_to_wisp_data = ' '):
     path110cat=path2direct+'fin_F110.cat'
 
     if os.path.exists(path110)==0 and os.path.exists(path140)==0 and os.path.exists(path160)==0:
-        print "No Direct Images Found."
+        print("No Direct Images Found.")
         return 0
     if os.path.exists(path140cat)==1:
         infHcat=open(path140cat,'r')
@@ -262,7 +262,7 @@ def showDispersed(obid, parno, load_image=False, path_to_wisp_data = ' '):  # MB
     path141_0reg = os.path.join(path2dispersed, 'G141_0th.reg')
     path141_1reg = os.path.join(path2dispersed, 'G141_1st.reg')
     if os.path.exists(path102)==0 and os.path.exists(path141)==0:
-        print "No Grism Images Found."
+        print("No Grism Images Found.")
         return 0
     # get center of 1st order
     ### Using same syntax as getzeroorders for consistency ###
@@ -333,7 +333,7 @@ def createAltGrismRegion(grism):
             cat = np.genfromtxt(cat110, dtype=[('num',int),('a_img',float),
                                ('mag',float)], usecols=(1,4,12))
         else:
-            print cat110
+            print(cat110)
             return 0
     if grism == 'G141':
         if os.path.exists(cat140) == 1:
@@ -343,7 +343,7 @@ def createAltGrismRegion(grism):
             cat = np.genfromtxt(cat160, dtype=[('num',int),('a_img',float),
                                  ('mag',float)], usecols=(1,4,12))
         else:
-            print 'nope2'
+            print('nope2')
             return 0
 
     f = open(os.path.join(workingdir,grism+'_temp.reg'), 'w')

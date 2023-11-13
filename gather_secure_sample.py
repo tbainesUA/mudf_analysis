@@ -23,7 +23,7 @@ def gather_secure_sample():
         sii_snr = table['sii_flux'] / table['sii_err'] 
         obj = table['ObjID'] 
         parno  = table['ParNo'] 
-        print parno[0]
+        print(parno[0])
         z_secure = []
         for i in np.arange(len(obj)): 
             snr_supporting = np.array( [oii_snr[i], hb_snr[i], hg_snr[i], ha_snr[i], sii_snr[i]] )

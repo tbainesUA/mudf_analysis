@@ -53,11 +53,11 @@ def calc_levels(arr):
 def calc_likelihood(input_meas, likelihood_func, curti=True, strom=False):
 
     if (curti == True) & (strom == True) :
-        print "You can't use both Curti and Strom Calibrations. Pick one and try again!"
+        print("You can't use both Curti and Strom Calibrations. Pick one and try again!")
         sys.exit(1)
 
     if (curti == False) & (strom == False):
-        print "Select a metallicity calibration"
+        print("Select a metallicity calibration")
         sys.exit()
 
     #### input meas comes from measure_stack
@@ -626,7 +626,7 @@ def dust_plot_likelihood(likelihood_func, plot_rootname, showfig = True, dust_pr
     best_oiiihg = header['BESTOIII']
     best_hbabs = header['BESTABS']
 
-    print header['BESTN2']
+    print(header['BESTN2'])
 
 
     if dust_prior != None:
@@ -884,9 +884,9 @@ def dust_plot_likelihood(likelihood_func, plot_rootname, showfig = True, dust_pr
     best_dust_marginalized = ebv_mod[w][0]
 
 
-    print 'best fitting E(B-V) global, best fitting E(B-V) marginalized,  68% 95%, and 99.7% confidence intervals (marginalized)'
-    print np.round(best_dust,3), np.round(best_dust_marginalized, 3) ,  np.round(ebv_1sig_low, 3), np.round(ebv_1sig_high,3),\
-        np.round(ebv_2sig_low, 3), np.round(ebv_2sig_high,3), np.round(ebv_3sig_low,3), np.round(ebv_3sig_high,3)
+    print('best fitting E(B-V) global, best fitting E(B-V) marginalized,  68% 95%, and 99.7% confidence intervals (marginalized)')
+    print(np.round(best_dust,3), np.round(best_dust_marginalized, 3) ,  np.round(ebv_1sig_low, 3), np.round(ebv_1sig_high,3),\
+        np.round(ebv_2sig_low, 3), np.round(ebv_2sig_high,3), np.round(ebv_3sig_low,3), np.round(ebv_3sig_high,3))
 
 
     oh_levs=  calc_levels(like_1d_oh)
@@ -902,9 +902,9 @@ def dust_plot_likelihood(likelihood_func, plot_rootname, showfig = True, dust_pr
     w=np.where(like_1d_oh == np.max(like_1d_oh))
     best_oh_marginalized = oh_mod[w][0]
 
-    print 'best fitting 12+log O/H global, best fitting 12 + log O/H marginalized, 68% 95%, and 99.7% confidence intervals (marginalized)'
-    print np.round(best_oh,4), np.round(best_oh_marginalized,4), np.round(oh_1sig_low, 4 ), np.round(oh_1sig_high, 4), np.round(oh_2sig_low, 4),\
-            np.round(oh_2sig_high, 4),  np.round(oh_3sig_low, 4), np.round(oh_3sig_high, 4)
+    print('best fitting 12+log O/H global, best fitting 12 + log O/H marginalized, 68% 95%, and 99.7% confidence intervals (marginalized)')
+    print(np.round(best_oh,4), np.round(best_oh_marginalized,4), np.round(oh_1sig_low, 4 ), np.round(oh_1sig_high, 4), np.round(oh_2sig_low, 4),\
+            np.round(oh_2sig_high, 4),  np.round(oh_3sig_low, 4), np.round(oh_3sig_high, 4))
 
 
 
@@ -921,9 +921,9 @@ def dust_plot_likelihood(likelihood_func, plot_rootname, showfig = True, dust_pr
     w= np.where(like_1d_oiii == np.max(like_1d_oiii))
     best_oiiihg_marginalized = oiiihg_mod[w][0]
 
-    print 'best fitting oiii/hg global, best fitting oiii/hg marginalized, 68% 95%, and 99.7% confidence intervals (marginalized)'
-    print np.round(best_oiiihg, 4), np.round(best_oiiihg_marginalized, 4), np.round(oiii_1sig_low, 4), np.round(oiii_1sig_high, 4),\
-            np.round(oiii_2sig_low, 4), np.round(oiii_2sig_high, 4), np.round(oiii_3sig_low, 4), np.round(oiii_3sig_high, 4)
+    print('best fitting oiii/hg global, best fitting oiii/hg marginalized, 68% 95%, and 99.7% confidence intervals (marginalized)')
+    print(np.round(best_oiiihg, 4), np.round(best_oiiihg_marginalized, 4), np.round(oiii_1sig_low, 4), np.round(oiii_1sig_high, 4),\
+            np.round(oiii_2sig_low, 4), np.round(oiii_2sig_high, 4), np.round(oiii_3sig_low, 4), np.round(oiii_3sig_high, 4))
 
 
     hbabs_levs = calc_levels(like_1d_stellar)
@@ -940,9 +940,9 @@ def dust_plot_likelihood(likelihood_func, plot_rootname, showfig = True, dust_pr
     best_hbabs_marginalized = hb_abs_mod[w][0]
 
 
-    print 'best fitting Hb stellar abs global, best fitting Hb stellar abs marginalized, 68% 95%, and 99.7% confidence intervals (marginalized)'
-    print np.round(best_hbabs, 3), np.round(best_hbabs_marginalized, 3), np.round(hbabs_1sig_low, 3), np.round(hbabs_1sig_high,3),\
-            np.round(hbabs_2sig_low, 3), np.round(hbabs_2sig_high, 3), np.round(hbabs_3sig_low,3), np.round(hbabs_3sig_high, 3)
+    print('best fitting Hb stellar abs global, best fitting Hb stellar abs marginalized, 68% 95%, and 99.7% confidence intervals (marginalized)')
+    print(np.round(best_hbabs, 3), np.round(best_hbabs_marginalized, 3), np.round(hbabs_1sig_low, 3), np.round(hbabs_1sig_high,3),\
+            np.round(hbabs_2sig_low, 3), np.round(hbabs_2sig_high, 3), np.round(hbabs_3sig_low,3), np.round(hbabs_3sig_high, 3))
 
 
 

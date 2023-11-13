@@ -143,23 +143,23 @@ def loop_field_cwt():
     g141files.sort()
     # M.D.R. - 10/08/2020
     print('')
-    print('Searching for default.config at: ' + str(os.getcwd()))
+    print(('Searching for default.config at: ' + str(os.getcwd())))
     config_pars = read_config('default.config')
     print('')
-    print('Searching for catalogs at: ' + str(os.getcwd()) + '/DATA/DIRECT_GRISM/fin_f*cat')
+    print(('Searching for catalogs at: ' + str(os.getcwd()) + '/DATA/DIRECT_GRISM/fin_f*cat'))
     catalogs = glob(os.getcwd()+'/DATA/DIRECT_GRISM/fin_f*cat') # get list of available catalogs
     catalogs.sort()
     print('')
-    print('I found the following catalogs: ' + str(catalogs))
+    print(('I found the following catalogs: ' + str(catalogs)))
     cat = asciitable.read(catalogs[0])
     print('')
-    print('Catalog opened successfully: ' + str(catalogs[0]))
+    print(('Catalog opened successfully: ' + str(catalogs[0])))
     print('')
     print(cat)
     print('')
-    print(cat.info)
+    print((cat.info))
     print('')
-    print(cat.colnames)
+    print((cat.colnames))
     # M.D.R. - 10/08/2020
 
     if len(catalogs) > 1:
@@ -208,7 +208,7 @@ def loop_field_cwt():
 
         for i in np.arange(len(lam_cwt)):
             #print beam, 'G102', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i]
-            print beam, 'MUSE', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i]
+            print(beam, 'MUSE', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i])
             outfile.write(parno + '  G102  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
 
         if config_pars['n_sigma_for_2pix_lines'] != False:
@@ -221,7 +221,7 @@ def loop_field_cwt():
             snr_cwt = g102_cwt[3]
             for i in np.arange(len(lam_cwt)):
                 #print beam, 'G102', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i]
-                print beam, 'MUSE', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i]
+                print(beam, 'MUSE', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i])
                 outfile.write(parno + '  G102  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
 
         # go back to the beginning with the old config pars
@@ -258,7 +258,7 @@ def loop_field_cwt():
         snr_cwt = g141_cwt[3]
 
         for i in np.arange(len(lam_cwt)):
-            print beam, 'G141', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i]
+            print(beam, 'G141', lam_cwt[i], npix_cwt[i], fwhm_est_pix, snr_cwt[i])
             outfile.write(parno + '  G141  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
 
         if config_pars['n_sigma_for_2pix_lines'] != False:
@@ -271,7 +271,7 @@ def loop_field_cwt():
             snr_cwt = g141_cwt[3]
 
             for i in np.arange(len(lam_cwt)):
-                print beam, 'G141', lam_cwt[i], npix_cwt[i], snr_cwt[i]
+                print(beam, 'G141', lam_cwt[i], npix_cwt[i], snr_cwt[i])
                 outfile.write(parno + '  G141  ' + str(int(beam)) + '  ' + str(lam_cwt[i]) + '  ' + str(npix_cwt[i]) + '  ' + str(snr_cwt[i]) + '\n')
 
         # go back to the beginning with the old config pars
@@ -354,14 +354,14 @@ def test_obj_cwt(parno, beamno, configfile):
     config_pars['transition_wave'] = 9353. # MDR 2022/08/16
 
     if len(lam) < config_pars['min_spec_length']:
-        print 'Short spec. skip it!'
+        print('Short spec. skip it!')
     else:
         w = np.where(beam_se == beamno)
         w = w[0] # because of tuples
         a_image = a_image_blue[w][0]
         fwhm_est_pix = a_image * 2
         g102_cwt = find_cwt(lam, flux_corr, err, zeros, fwhm_est_pix, str(beamno), config_pars, plotflag=True)
-        print g102_cwt[0], g102_cwt[1], g102_cwt[2], fwhm_est_pix
+        print(g102_cwt[0], g102_cwt[1], g102_cwt[2], fwhm_est_pix)
 
     # do the red side
     #config_pars['transition_wave'] = 11200.
@@ -374,11 +374,11 @@ def test_obj_cwt(parno, beamno, configfile):
     zeros = trimmed_spec_red[4]
 
     if len(lam) < config_pars['min_spec_length']:
-        print 'Short spec. skip it!'
+        print('Short spec. skip it!')
     else:
         w = np.where(beam_se == beamno)
         w = w[0] # because of tuples
         a_image = a_image_red[w][0]
         fwhm_est_pix = a_image * 2
         g141_cwt = find_cwt(lam, flux_corr, err, zeros, fwhm_est_pix, str(beamno), config_pars, plotflag=True)
-        print g141_cwt[0], g141_cwt[1], g141_cwt[2], fwhm_est_pix
+        print(g141_cwt[0], g141_cwt[1], g141_cwt[2], fwhm_est_pix)

@@ -311,7 +311,7 @@ class WISPLFDatabaseManager:
             return None
         # FIXME: For now, just return the last row added
         nonFitResults = [catalogueEntryData[-1][key]
-                         for key in catalogueEntryData[-1].keys() if key not in WISPLFDatabaseManager.fitResultKeys]
+                         for key in list(catalogueEntryData[-1].keys()) if key not in WISPLFDatabaseManager.fitResultKeys]
         fitResults = {key: catalogueEntryData[-1][key]
                       for key in WISPLFDatabaseManager.fitResultKeys}
         return tuple(nonFitResults), fitResults

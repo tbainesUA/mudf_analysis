@@ -1,7 +1,7 @@
 # Import required packages.
 from timeit import default_timer
 from wisp_analysis import *
-from mpfit import *
+from .mpfit import *
 
 '''The steps for adding additional emission lines to the model are the following:
 1.) Define the vacuum rest wavelength for your emission line in the list below.
@@ -797,7 +797,7 @@ def fit_obj(input_list):
         start_time  = default_timer() # time the fit for performance analyses.
 
         if fast_fit == True:
-            print 'Running fast line fit...'
+            print('Running fast line fit...')
 
             # for a fast fit fix the dispersion ratio to its initial guess.
             parinfo[fwhm_ratio_idx]['fixed'] = 1
@@ -811,7 +811,7 @@ def fit_obj(input_list):
                 parinfo[eval(dzx)]['fixed'] = 1
 
         else:
-            print 'Running full line fit...'
+            print('Running full line fit...')
 
         out = mpfit(model_resid, pguess, functkw = fa, parinfo = parinfo, quiet = True, maxiter = 100)
 
@@ -819,7 +819,7 @@ def fit_obj(input_list):
 
         fit_time = np.format_float_positional(end_time - start_time, precision = 2)
 
-        print '\033[92m' + 'MPFIT completed', out.niter, 'iterations in', fit_time, 'seconds.' + '\033[0m'
+        print('\033[92m' + 'MPFIT completed', out.niter, 'iterations in', fit_time, 'seconds.' + '\033[0m')
 
         chisq = out.fnorm / (len(w[0]) - num_of_params)
 

@@ -130,7 +130,7 @@ def trim_spec(tbdata_blue, tbdata_red, config_pars, mask_zeros=False, return_mas
     ### create an array of flags for masked regions
     masked_regions = np.zeros(lam_spec.shape, dtype=int)
     ### removed masked regions
-    for k,v in config_pars.items():
+    for k,v in list(config_pars.items()):
         if 'mask_region' in k:
             bluecut = v[0]
             redcut = v[1]

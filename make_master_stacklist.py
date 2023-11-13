@@ -329,7 +329,7 @@ for i  in np.arange(len(objid_parent)): #M.D.R#
         eoii_wisp.append(catalog_data['oii_err'][w[0][-1]])
         ew_oiii_obs_wisp.append(catalog_data['oiii_EW_obs'][w[0][-1]])
 
-        print 'Keeper found! All checks passed for objid_parent[i]: ' + str(objid_parent[i]) #M.D.R#
+        print('Keeper found! All checks passed for objid_parent[i]: ' + str(objid_parent[i])) #M.D.R#
 
 
 
@@ -342,12 +342,12 @@ foiii_wisp = np.array(foiii_wisp)
 eoiii_wisp  = np.array(eoiii_wisp)
 keepers = np.array(keepers)
 
-print ''  #M.D.R#
-print 'Size of Parent WISP catalog'
-print np.size(masscat_wisp['ID'])
-print ''  #M.D.R#
-print 'Size of Retained WISP catalog'
-print np.sum(keepers)
+print('')  #M.D.R#
+print('Size of Parent WISP catalog')
+print(np.size(masscat_wisp['ID']))
+print('')  #M.D.R#
+print('Size of Retained WISP catalog')
+print(np.sum(keepers))
 
 
 
@@ -437,7 +437,7 @@ w=np.where((foiii > 0) & (eoiii > 0) & (fhb > 0) & (ehb > 0)) #M.D.R#
 # Where oiii is > median.
 w=np.where((foiii > 0) & (eoiii > 0) & (foiii / eoiii > 3)) #M.D.R#
 #print '5x median is: ' + str(np.median(foiii)*5.0) #M.D.R#
-print '' #M.D.R#
+print('') #M.D.R#
 #w=np.where((foiii > 0) & (eoiii > 0)) #M.D.R#
 #w_tup=np.where( (foiii > 0) & (eoiii > 0) & (z > 1.2)) #M.D.R#
 #w_lst = [] #M.D.R#
@@ -486,8 +486,8 @@ ew_oiii_obs = ew_oiii_obs[w]
 
 
 #M.D.R# print 'number of objects after OIII no cov,  OIII err = 0, z<1.2  removed'
-print 'number of objects after clean sweep' #M.D.R# \
-print np.size(field), np.size(objid), np.size(logm), np.size(z), np.size(foiii), np.size(eoiii)
+print('number of objects after clean sweep') #M.D.R# \
+print(np.size(field), np.size(objid), np.size(logm), np.size(z), np.size(foiii), np.size(eoiii))
 
 objid = objid.astype(int)
 

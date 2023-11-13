@@ -1,5 +1,5 @@
 from wisp_analysis import *
-from mpfit import *
+from .mpfit import *
 
 import astropy.units as u
 from astropy.cosmology import Planck13 as cosmo
@@ -224,7 +224,7 @@ def error_2comp_gaussian(params, perror, covar, indices):
 
 def measure_stack(input_stack, input_masterlist, output_meas, output_fig, zmax = 2.3, showfig = False, twocomp=True):
 
-    print 'Running measure_stack...' #M.D.R#
+    print('Running measure_stack...') #M.D.R#
     lam_max = 17200/(1+zmax)
 
     tab= asciitable.read(input_stack)
@@ -909,8 +909,8 @@ def measure_stack(input_stack, input_masterlist, output_meas, output_fig, zmax =
     ew_stack = np.array([ha_ew, hb_ew, hg_ew, hd_ew, oiii_ew, -1, -1, -1, -1, -1])
     ew_stack_err = np.array([ha_ew_err,hb_ew_err, hg_ew_err, hd_ew_err, oiii_ew_err, -1, -1, -1, -1, -1])
 
-    print out.params
-    print '' #M.D.R#
+    print(out.params)
+    print('') #M.D.R#
 
     out_names = ['line', 'flux_norm', 'flux_norm_err', 'flux_scale', 'luminosity_scale', 'ew_rest', 'ew_err']
     out_data = [label, norm_fluxes, norm_errs, scaled_fluxes, scaled_lums,  ew_stack, ew_stack_err]

@@ -641,9 +641,9 @@ def dust_plot_likelihood(likelihood_func, plot_rootname):
     best_dust_marginalized = ebv_mod[w][0] 
 
 
-    print 'best fitting E(B-V) global, best fitting E(B-V) marginalized,  68% 95%, and 99.7% confidence intervals (marginalized)' 
-    print np.round(best_dust,3), np.round(best_dust_marginalized, 3) ,  np.round(ebv_1sig_low, 3), np.round(ebv_1sig_high,3),\
-        np.round(ebv_2sig_low, 3), np.round(ebv_2sig_high,3), np.round(ebv_3sig_low,3), np.round(ebv_3sig_high,3) 
+    print('best fitting E(B-V) global, best fitting E(B-V) marginalized,  68% 95%, and 99.7% confidence intervals (marginalized)') 
+    print(np.round(best_dust,3), np.round(best_dust_marginalized, 3) ,  np.round(ebv_1sig_low, 3), np.round(ebv_1sig_high,3),\
+        np.round(ebv_2sig_low, 3), np.round(ebv_2sig_high,3), np.round(ebv_3sig_low,3), np.round(ebv_3sig_high,3)) 
 
 
     if best_niiha != -99 : 
@@ -660,9 +660,9 @@ def dust_plot_likelihood(likelihood_func, plot_rootname):
         w=np.where(like_1d_nii == np.max(like_1d_nii)) 
         best_nii_marginalized = niiha_mod[w][0]
 
-        print 'best fitting nii/ha global, best fitting nii/ha marginalized, 68% 95%, and 99.7% confidence intervals (marginalized)'  
-        print np.round(best_niiha,4), np.round(best_nii_marginalized,4), np.round(nii_1sig_low, 4 ), np.round(nii_1sig_high, 4), np.round(nii_2sig_low, 4),\
-            np.round(nii_2sig_high, 4),  np.round(nii_3sig_low, 4), np.round(nii_3sig_high, 4) 
+        print('best fitting nii/ha global, best fitting nii/ha marginalized, 68% 95%, and 99.7% confidence intervals (marginalized)')  
+        print(np.round(best_niiha,4), np.round(best_nii_marginalized,4), np.round(nii_1sig_low, 4 ), np.round(nii_1sig_high, 4), np.round(nii_2sig_low, 4),\
+            np.round(nii_2sig_high, 4),  np.round(nii_3sig_low, 4), np.round(nii_3sig_high, 4)) 
 
 
 
@@ -679,9 +679,9 @@ def dust_plot_likelihood(likelihood_func, plot_rootname):
     w= np.where(like_1d_oiii == np.max(like_1d_oiii)) 
     best_oiiihg_marginalized = oiiihg_mod[w][0] 
 
-    print 'best fitting oiii/hg global, best fitting oiii/hg marginalized, 68% 95%, and 99.7% confidence intervals (marginalized)'  
-    print np.round(best_oiiihg, 4), np.round(best_oiiihg_marginalized, 4), np.round(oiii_1sig_low, 4), np.round(oiii_1sig_high, 4),\
-            np.round(oiii_2sig_low, 4), np.round(oiii_2sig_high, 4), np.round(oiii_3sig_low, 4), np.round(oiii_3sig_high, 4) 
+    print('best fitting oiii/hg global, best fitting oiii/hg marginalized, 68% 95%, and 99.7% confidence intervals (marginalized)')  
+    print(np.round(best_oiiihg, 4), np.round(best_oiiihg_marginalized, 4), np.round(oiii_1sig_low, 4), np.round(oiii_1sig_high, 4),\
+            np.round(oiii_2sig_low, 4), np.round(oiii_2sig_high, 4), np.round(oiii_3sig_low, 4), np.round(oiii_3sig_high, 4)) 
 
 
     hbabs_levs = calc_levels(like_1d_stellar) 
@@ -698,9 +698,9 @@ def dust_plot_likelihood(likelihood_func, plot_rootname):
     best_hbabs_marginalized = hb_abs_mod[w][0] 
 
 
-    print 'best fitting Hb stellar abs global, best fitting Hb stellar abs marginalized, 68% 95%, and 99.7% confidence intervals (marginalized)'    
-    print np.round(best_hbabs, 3), np.round(best_hbabs_marginalized, 3), np.round(hbabs_1sig_low, 3), np.round(hbabs_1sig_high,3),\
-            np.round(hbabs_2sig_low, 3), np.round(hbabs_2sig_high, 3), np.round(hbabs_3sig_low,3), np.round(hbabs_3sig_high, 3) 
+    print('best fitting Hb stellar abs global, best fitting Hb stellar abs marginalized, 68% 95%, and 99.7% confidence intervals (marginalized)')    
+    print(np.round(best_hbabs, 3), np.round(best_hbabs_marginalized, 3), np.round(hbabs_1sig_low, 3), np.round(hbabs_1sig_high,3),\
+            np.round(hbabs_2sig_low, 3), np.round(hbabs_2sig_high, 3), np.round(hbabs_3sig_low,3), np.round(hbabs_3sig_high, 3)) 
 
 
 

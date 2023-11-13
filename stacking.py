@@ -168,12 +168,12 @@ def stack_spec(inlist, outstack, path_wisp = './', path_3dhst = './', bootstrap 
         if fieldname[i][0:3] == 'Par' :
             if os.path.exists(path_wisp +  '/' + fieldname[i] + '/Spectra/Par0_output_run07/') : #M.D.R#
                 specfile = path_wisp + '/' + fieldname[i] + '/Spectra/Par0_output_run07/fitdata/' + fieldname[i] + '_' + str(objid[i]) + '_fitspec.dat' #M.D.R#
-                print specfile
+                print(specfile)
 
             else :
                 specfile = None
                 #catalog = None
-                print 'Could not find fit data directory for ' + fieldname[i]
+                print('Could not find fit data directory for ' + fieldname[i])
 
         #### if not WISP, look for the 3D HST data
 #M.D.R#        else :
@@ -279,7 +279,7 @@ def stack_spec(inlist, outstack, path_wisp = './', path_3dhst = './', bootstrap 
                 #plt.clf()
             else:
                 if os.path.exists(specfile) == False :
-                    print 'Could not find : ' + specfile
+                    print('Could not find : ' + specfile)
                # if os.path.exists(catalog) == False :
                   #print 'Could not find :' + catalog
 
@@ -297,7 +297,7 @@ def stack_spec(inlist, outstack, path_wisp = './', path_3dhst = './', bootstrap 
 
     t1 = time.time()
 
-    print str(t1 - t0) + ' seconds to read and de-redshift spectra'
+    print(str(t1 - t0) + ' seconds to read and de-redshift spectra')
 
     for i in np.arange(nlam):
         w=np.where(stack_frame[:, i] > -1)
@@ -331,7 +331,7 @@ def stack_spec(inlist, outstack, path_wisp = './', path_3dhst = './', bootstrap 
 
 
     t2 = time.time()
-    print str(t2 - t1)  + ' seconds to take the median'
+    print(str(t2 - t1)  + ' seconds to take the median')
 
     if bootstrap == True :
         nstraps = 50  ### later make nstraps = ngals.
@@ -357,7 +357,7 @@ def stack_spec(inlist, outstack, path_wisp = './', path_3dhst = './', bootstrap 
 
 
 
-    print 'writing output file: ' +  outstack
+    print('writing output file: ' +  outstack)
     outfile = open(outstack, 'w')
     outfile.write('lam       flux_norm     err\n')
     for a, b, c in zip(lam_stack, stack_spec, stack_err):
